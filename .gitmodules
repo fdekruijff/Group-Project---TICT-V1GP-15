@@ -1,0 +1,3 @@
+[submodule "piprograms"]
+	path = piprograms
+	url = git@github.com:janzuurbier/piprograms.git
