@@ -1,26 +1,3 @@
-/*
- *
- *  https://github.com/janzuurbier/...
- *
- *  Copyright (c) 2018 Jan Zuurbier
- *
- *
- *  This code is an example for line following.
- *	Due to lack of a light sensor a color sensor is used with only color red.
- *
- *  Hardware: Connect sensor to PORT_1. Motors to PORT_B and PORT_C.
- *
- *  Results:  When you run this program, your vehicle should follow a line.
- *
- *	Video: https://youtu.be/IH7PWprLPkc
- *
- *  Example compile command:
- *    g++ -o program BrickPi3.cpp simplebot3.cpp
- *  Example run command:
- *     ./program
- *
- */
-
 #include "BrickPi3.h" // for BrickPi3
 #include <iostream>      // for cin and cout
 #include <unistd.h>     // for usleep
