@@ -31,37 +31,27 @@ int turnHead(int degree){
     return 1;
 }
 
-
-int head(int degree){
-	sensor_ultrasonic_t Ultrasonic2;
-	
-	if (degree == 0){
-		BP.get_sensor(PORT_3, Ultrasonic2);
-		return Ultrasonic2.cm;
-	}else{
-		if (turnHead(degree) == 1){
-			BP.get_sensor(PORT_3, Ultrasonic2);
-			sleep(1);
-			if (turnHead(degree *-1) == 1){
-				sleep(1);
-				return Ultrasonic2.cm;
-			}
-		}
-	}
+int head(int degrees){
+    turnHead(degrees);
+  signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
+  BP.detect(); // Make sure that the BrickPi3 is communicating and that the firmware is compatible with the drivers.
+  int error;
+  BP.set_sensor_type(PORT_3, SENSOR_TYPE_NXT_ULTRASONIC);
+  sensor_ultrasonic_t Ultrasonic2;
+for (int i =0; i < 1000;i++){
+    if(BP.get_sensor(PORT_3, Ultrasonic2) == 0){
+		//cout << "Ultrasonic sensor (S2): "   << Ultrasonic2.cm << "cm" << endl;
+		//usleep(100);
+ 	}
+}
+turnHead(degrees*-1);
+cout << Ultrasonic2.cm<< endl;
 }
 
 
 int main(){
-
-	
 	brick_py_setup();
-	
-    int degrees = 0 ;
-    cout << "give degrees" << endl;
-    cin >> degrees;
-    cout << head(degrees) << endl;
-	
-	return 0;
+    head(50);
 }
 
 
