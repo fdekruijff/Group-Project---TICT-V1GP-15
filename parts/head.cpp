@@ -2,9 +2,11 @@
 #include <cmath>
 #include <iostream>
 #include <unistd.h>
+#include <signal.h>
 #include "./piprograms/BrickPi3.cpp"
 #include <thread>
 #include <vector>
+
 
 using namespace std;
 
@@ -27,40 +29,53 @@ void brick_py_setup() {
 	BP.set_sensor_type(PORT_3, SENSOR_TYPE_NXT_ULTRASONIC); //Ultrasonic sensor setup
 }
 
-void stopHead(void){
+void stop_head(void){
 	//Useless function
 	BP.set_motor_power(m_right, -128);
 }
 
 
-int turnHead(int degree){
+int turn_head(int degree){
 	BP.set_motor_position(PORT_A, degree);
 	return 1;
 }
 
-int head(void){
+
+float scan(void){
 	sensor_ultrasonic_t Ultrasonic2;
-	
+	vector<int> sensordata = {};
 	for (int i =0; i<1000 ;i++){
 		BP.get_sensor(PORT_3, Ultrasonic2); //Check 1000 times Ultrasonic sensor to get data
+        if (Ultrasonic2.cm != 0){
+            sensordata.push_back(Ultrasonic2.cm);
+        }
+        sleep(0.01);
 	}
-	return Ultrasonic2.cm;
+    float average = 0;
+    for (int i = 0; i < sensordata.size();i++){
+        average += sensordata[i];
+    }
+	return average / sensordata.size();
 }
 
-int turnHeadScan(int degree){
-	turnHead(degree);
-	sleep(0.5);
-	int dist = head();
-	sleep(0.5);
-	turnHead(degree*-1);
+float turn_head_scan(int degree){
+	turn_head(degree);
+	sleep(1);
+	float dist = scan();
+	sleep(1);
+	turn_head(degree*-1);
 	return dist;
 }
 
 
 int main(){
 	brick_py_setup();
-	cout << turnHeadScan(50)<< endl;
-	stopHead();
+    for (int x = 0; x < 25;x++){
+	//cout << turn_head_scan(50)<< "opzij"<<endl;
+    sleep(0.2);
+    cout << scan()<< "rechtdoor" <<endl;
+    }
+	stop_head();
 }
 
 
