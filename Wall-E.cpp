@@ -3,26 +3,41 @@
 #include <unistd.h>
 #include "./piprograms/BrickPi3.cpp"
 #include <thread>
-#include <signal.h>
 #include <vector>
 
 using namespace std;
 
 
 BrickPi3 BP;
+
+// Motor / sensor variables
 uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
 uint8_t m_right = PORT_C;               // Right motor
+sensor_light_t contrast_struct;
 
+// Calibration variables
+bool calibrating = false;
+float set_point = 0.0;
 int16_t high_reflection = 0;
 int16_t low_reflection = 0;
 
-int power = 30;
-float K = 2.0;
-bool calibrating = false;
+// PID variables
+struct wall_e_settings {
+    float last_error;
+    float last_time;
+    float p_gain;
+    float i_gain;
+    float d_gain;
+    float i_error;
+};
 
-sensor_light_t contrast_struct;
+wall_e_settings brain;
+
+// Driving modes
+bool driving_mode_line = false;
+bool grid = false;
 
 void exit_signal_handler(int signo);
 
@@ -33,10 +48,18 @@ void exit_signal_handler(int signo){
     }
 }
 
-void brick_py_setup() {
+void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
+
+    brain.last_error = 0.0;
+    brain.last_time = 1.0;
+    brain.p_gain = 0.275;
+    brain.i_gain = 0.01;
+    brain.d_gain = 2.8;
+    brain.i_error = 0.0;
+    brain.set_point = 0.0;
 }
 
 void stop() {
@@ -108,53 +131,47 @@ void calibrate() {
     stop();
     motor_power(100);
     measure.join();
+    set_point = (high_reflection + low_reflection) / 2;
+    cout << "Calibration finished. high:" << int(high_reflection) << " low:" << low_reflection << " set:" << set_point << endl;
 }
 
-void steer_left(float amount) {
+void steer_left(uint8_t amount) {
     BP.set_motor_power(m_left, amount);
 }
 
-void steer_right(float amount) {
+void steer_right(uint8_t amount) {
     BP.set_motor_power(m_right, amount);
 }
 
+float calculate_correction() {
+    float sensor = get_contrast();
+    float error = set_point - sensor;
+
+    float p_error = error;
+    brain.i_error += (error + brain.last_error) * brain.last_time;
+    float d_error = (error - brain.last_error) / brain.last_time;
+
+    float p_output = brain.p_gain * p_error;
+    float i_output = brain.i_gain * brain.i_error;
+    float d_output = brain.d_gain * d_error;
+    brain.last_error = error;
+
+    // TODO: map output to power profile
+    return p_output;
+}
+
 void drive_line() {
-    float reset = 0.0;
-    float constant = K;
-    float last_error = 0.0;
-    float output = 0.0;
-    float P_pid = 0.0;
-    float I_pid = 0.0;
-    float D_pid = 0.0;
-
-    while (true) {
-        float sensor_value = get_contrast();
-        float offset = (high_reflection + low_reflection) / 2;
-        float error = sensor_value - offset;
-
-//        float P_pid = constant * error;
-//        float I_pid = reset + (constant / 2 * float(M_PI)) * error;
-//        float D_pid = (constant / 2 * float(M_PI)) * (error - last_error);//
-
-        P_pid = constant * error;
-        I_pid += error;
-        D_pid = error - last_error;
-        last_error = error;
-
-        output = P_pid + I_pid + D_pid;
-        steer_left(power - output);
-        steer_right(power + output);
-        cout << "error: " << error << endl;
-        cout << "l pwr: " << power-output;
-        cout << "r pwr: " << power+output;
-        usleep(75000);
+    while (driving_mode_line) {
+        float output = calculate_correction();
+        steer_left(65 - output);
+        steer_right(65 + output);
+        usleep(15000);
     }
+
 }
 
 int main() {
-    brick_py_setup();
-    sleep(1);
+    setup();
     calibrate();
-
     drive_line();
 }
