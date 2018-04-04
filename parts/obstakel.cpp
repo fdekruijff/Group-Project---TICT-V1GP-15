@@ -9,6 +9,19 @@
 
 int size_object = 0;
 
+void object_in_the_way(){
+	int limited_distance = 20;
+	if (afstand < limited_distance && afstand != 0){
+		brain.driving_mode = STOP;
+	}
+}
+
+void turn_head_body(int degrees){
+	left(degrees);
+	turn_head(degrees);
+}
+
+
 int no_object(){
      while (afstand != 0){
         //drive 1 cm 
