@@ -7,8 +7,11 @@
 #include <thread>
 #include <vector>
 
+//setup for object 
 int size_object = 0;
 
+
+//if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
 	int limited_distance = 20;
 	if (afstand < limited_distance && afstand != 0){
@@ -16,12 +19,15 @@ void object_in_the_way(){
 	}
 }
 
+
+//turns head and body at the same time in threads. 
 void turn_head_body(int degrees){
-	left(degrees);
-	turn_head(degrees);
+	thread turn (left(degrees));
+	thread head_turn (turn_head(degrees));
 }
 
 
+//keeps on driving till there is no object.
 int no_object(){
      while (afstand != 0){
         //drive 1 cm 
@@ -30,6 +36,7 @@ int no_object(){
 }
 
 
+// main function to drive around the obstacle. it calls all the funcions in the right order
 int around_object(0){
     turn_head_body(90);
     no_object
