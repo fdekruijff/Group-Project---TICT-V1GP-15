@@ -4,6 +4,7 @@
 #include "./piprograms/BrickPi3.cpp"
 #include <thread>
 #include <vector>
+#include <map>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ using namespace std;
 BrickPi3 BP;
 
 // Motor / sensor variables
+uint8_t s_color = PORT_1;
 uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
@@ -19,30 +21,33 @@ sensor_light_t contrast_struct;
 
 // Calibration variables
 bool calibrating = false;
-float set_point = 0.0;
 int16_t high_reflection = 0;
 int16_t low_reflection = 0;
 
+// Driving modes
+const string LINE = "LINE";
+const string STOP = "STOP";
+
 // PID variables
 struct wall_e_settings {
-    float last_error;
-    float last_time;
-    float p_gain;
-    float i_gain;
-    float d_gain;
-    float i_error;
+    float last_error = 0.0;
+    float last_time = 1.0;
+    float p_gain = 0.275;
+    float i_gain = 0.01;
+    float d_gain = 2.8;
+    float i_error = 0.0;
+    float set_point = 0.0;
+    int motor_power = 65;
+    int pid_update_frequency_ms = 15000;
+    string driving_mode = STOP;
 };
 
 wall_e_settings brain;
 
-// Driving modes
-bool driving_mode_line = false;
-bool grid = false;
-
 void exit_signal_handler(int signo);
 
-void exit_signal_handler(int signo){
-    if(signo == SIGINT){
+void exit_signal_handler(int signo) {
+    if (signo == SIGINT) {
         BP.reset_all();    // Reset everything so there are no run-away motors
         exit(-2);
     }
@@ -52,14 +57,6 @@ void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
-
-    brain.last_error = 0.0;
-    brain.last_time = 1.0;
-    brain.p_gain = 0.275;
-    brain.i_gain = 0.01;
-    brain.d_gain = 2.8;
-    brain.i_error = 0.0;
-    brain.set_point = 0.0;
 }
 
 void stop() {
@@ -131,8 +128,9 @@ void calibrate() {
     stop();
     motor_power(100);
     measure.join();
-    set_point = (high_reflection + low_reflection) / 2;
-    cout << "Calibration finished. high:" << int(high_reflection) << " low:" << low_reflection << " set:" << set_point << endl;
+    brain.set_point = (high_reflection + low_reflection) / 2;
+    cout << "Calibration finished. high:" << int(high_reflection) << " low:" << low_reflection << " set:" << set_point
+         << endl;
 }
 
 void steer_left(uint8_t amount) {
@@ -145,7 +143,7 @@ void steer_right(uint8_t amount) {
 
 float calculate_correction() {
     float sensor = get_contrast();
-    float error = set_point - sensor;
+    float error = brain.set_point - sensor;
 
     float p_error = error;
     brain.i_error += (error + brain.last_error) * brain.last_time;
@@ -156,16 +154,16 @@ float calculate_correction() {
     float d_output = brain.d_gain * d_error;
     brain.last_error = error;
 
-    // TODO: map output to power profile
+    // TODO: FIX pid
     return p_output;
 }
 
 void drive_line() {
-    while (driving_mode_line) {
+    while (brain.driving_mode == LINE) {
         float output = calculate_correction();
-        steer_left(65 - output);
-        steer_right(65 + output);
-        usleep(15000);
+        steer_left(uint8_t(brain.motor_power - output));
+        steer_right(uint8_t(brain.motor_power + output));
+        usleep(brain.pid_update_frequency_ms);
     }
 
 }
@@ -173,5 +171,6 @@ void drive_line() {
 int main() {
     setup();
     calibrate();
+    brain.driving_mode = LINE;
     drive_line();
 }
