@@ -1,5 +1,4 @@
-//Groupproject V1C 5 Esmee Blom, Stijn Fenijn, Bryan Campagne, Floris de Kruijff en Quin Ligteringen
-//
+
 
 #include "BrickPi3.h"   // BrickPi3
 #include <iostream>     // cout
@@ -9,6 +8,10 @@
 using namespace std;
 
 BrickPi3 BP;
+uint8_t s_contrast = PORT_2;            // Light sensor
+uint8_t m_head = PORT_A;                // Head motor
+uint8_t m_left = PORT_B;                // Left motor
+uint8_t m_right = PORT_C;               // Right motor
 
 void exit_signal_handler(int signo);
 
@@ -31,36 +34,33 @@ void fwd(void){
 	stop();
 }
 
-//Move own length
-void length(void){
-	BP.set_motor_dps(PORT_B, 360);
-	BP.set_motor_dps(PORT_C, 360);
-	 sleep(3);
-	 stop();
-}
-
-void doorgaan(void){
-	char doorgaan;
-	 BP.set_motor_power(PORT_B, 20);
-	 BP.set_motor_power(PORT_C, 20);
-	 usleep(500000);
-	 BP.set_motor_power(PORT_B, 40);
-	 BP.set_motor_power(PORT_C, 40);
-	 usleep(500000);
-	 BP.set_motor_power(PORT_B, 60);
-	 BP.set_motor_power(PORT_C, 60);
-	 usleep(500000);
-	 BP.set_motor_power(PORT_B, 80);
-	 BP.set_motor_power(PORT_C, 80);
-	 sleep(2);
-	 stop();
+//Drive
+void drive(float s){
+	int degree =38.5 * s;
+	int x = degree%360;
+	cout<< x;
+	for(int i=0; i<(degree/360); i++){
+		if(i==0){
+			BP.set_motor_position_relative(m_left, x);
+			BP.set_motor_position_relative(m_right, x);
+			
+			
+			usleep(500000);
+			
+		}else{
+			BP.set_motor_position_relative(m_left, 360);
+			BP.set_motor_position_relative(m_right, 360);
+			
+			usleep(1000000);
+		}
+	}
 }
 
 
 //Move Left
 void left(void){
-	 BP.set_motor_position_relative(PORT_B, 270);
-	 BP.set_motor_position_relative(PORT_C, -270);
+	BP.set_motor_power(PORT_B, 20);
+	BP.set_motor_power(PORT_C, -20);
 }
 
 
@@ -81,14 +81,6 @@ void back(void){
 	 stop();
 }
 
-//Move head
-void head(int degree){
-	 BP.set_motor_position_relative(PORT_A, degree); //110
-	 sleep(1);
-	 BP.set_motor_position_relative(PORT_A, (degree*-1));
-	 sleep(1);
-	 stop();
-}
 
 int main(){
 	signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
@@ -99,15 +91,12 @@ int main(){
   	char inp;
 
 	while(true){
-		cout << "Press f (forward), b (backward), l(left), r (right), h (head), s (stop), l (lengt): " << endl;
+		cout << "Press f (forward), b (backward), l(left), r (right), s (stop), d (drive): " << endl;
 		cin >> inp;	//Take input from the terminal
 		//Move the bot
 		if(inp=='f') {
 			  	fwd();
 			}
-		else if (inp=='d'){
-				doorgaan();
-		}
 		else if (inp=='b') {
 			  	back();
 			}
@@ -117,22 +106,13 @@ int main(){
 		else if (inp=='r'){
 				right();
 			}
-		else if (inp=='h'){
-				cout << "Degrees:" << endl;
-				int degree;
-				cin >> degree;
-				head(degree);
+		else if (inp=='d'){
+				float s = 10;
+				drive(s);
 			}
 		else if (inp=='s'){
 				stop();
 			}
-		else if (inp=='l'){
-				length();
-			}
-
-
-
-
 	}
 
 	return 0;
