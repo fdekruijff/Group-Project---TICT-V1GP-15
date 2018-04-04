@@ -45,11 +45,13 @@ int turn_head(int degree){
 void scan_ultrasonic(){
 	sensor_ultrasonic_t Ultrasonic2;
 	while (true){
-		BP.get_sensor(PORT_3, Ultrasonic2); //Check 1000 times Ultrasonic sensor to get data
-        if (Ultrasonic2.cm != 0){
-            afstand = Ultrasonic2.cm;
+		BP.get_sensor(PORT_3, Ultrasonic2);
+        if (Ultrasonic2.cm > 0 and Ultrasonic2.cm < 25){
+               afstand = Ultrasonic2.cm;
+        }else{ 
+            afstand = 0;
         }
-        sleep(0.01);
+    sleep(0.01);
     }
 } 
 
@@ -57,11 +59,6 @@ void scan_ultrasonic(){
 int main(){
 	brick_py_setup();
     thread scan (scan_ultrasonic);
-    sleep(5);
-    for (int x = 0; x < 100;x++){
-    sleep(2);
-    cout << afstand<< "rechtdoor" <<endl;
-    }
 	stop_head();
 }
 
