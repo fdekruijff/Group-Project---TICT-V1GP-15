@@ -16,6 +16,7 @@ uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
 uint8_t m_right = PORT_C;               // Right motor
+int afstand = 0; 
 
 //Exit signal
 
@@ -41,39 +42,25 @@ int turn_head(int degree){
 }
 
 
-float scan(void){
+void scan_ultrasonic(){
 	sensor_ultrasonic_t Ultrasonic2;
-	vector<int> sensordata = {};
-	for (int i =0; i<1000 ;i++){
+	while (true){
 		BP.get_sensor(PORT_3, Ultrasonic2); //Check 1000 times Ultrasonic sensor to get data
         if (Ultrasonic2.cm != 0){
-            sensordata.push_back(Ultrasonic2.cm);
+            afstand = Ultrasonic2.cm;
         }
         sleep(0.01);
-	}
-    float average = 0;
-    for (int i = 0; i < sensordata.size();i++){
-        average += sensordata[i];
     }
-	return average / sensordata.size();
-}
-
-float turn_head_scan(int degree){
-	turn_head(degree);
-	sleep(1);
-	float dist = scan();
-	sleep(1);
-	turn_head(degree*-1);
-	return dist;
-}
+} 
 
 
 int main(){
 	brick_py_setup();
-    for (int x = 0; x < 25;x++){
-	//cout << turn_head_scan(50)<< "opzij"<<endl;
-    sleep(0.2);
-    cout << scan()<< "rechtdoor" <<endl;
+    thread scan (scan_ultrasonic);
+    sleep(5);
+    for (int x = 0; x < 100;x++){
+    sleep(2);
+    cout << afstand<< "rechtdoor" <<endl;
     }
 	stop_head();
 }

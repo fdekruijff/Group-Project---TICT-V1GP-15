@@ -28,11 +28,23 @@ void Setup()
 
 bool Find_Red(void)
 {
-	cout << BP.get_sensor(PORT_1, Color1);
+	while(true)
+	{
+		error = 0;
+		if(BP.get_sensor(PORT_1, Color1) == 0)
+		{
+			cout << "Color sensor (S1): detected  " << (int) Color1.color;
+			cout << " red" << setw(4) << Color1.reflected_red;
+			cout << " green" << setw(4) << Color1.reflected_green;
+			cout << " blue" << setw(4) << Color1.reflected_blue;
+			cout << " ambient" << setw(4) << Color1.ambient << endl;
+		}
+	}
 }
 
 int main()
 {
+	Setup()
 	signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
-	
+	Find_Red()
 }
