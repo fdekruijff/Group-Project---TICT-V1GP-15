@@ -11,7 +11,7 @@
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
 	int limited_distance = 20;
-	if (afstand < limited_distance && afstand != 0){
+	if (distance_to_object < limited_distance && afstand != 0){
 		brain.driving_mode = STOP;
 	}
 }
@@ -26,7 +26,7 @@ void turn_head_body(int degrees){
 
 //keeps on driving till there is no object.
 int no_object(){
-     while (afstand != 0){
+     while (distance_to_object != 0){
         //drive 1 cm 
     } 
 }
