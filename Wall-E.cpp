@@ -132,10 +132,6 @@ void calibrate() {
             {turn,  -turn},
             {-turn, turn},
             {-turn, turn},
-            {turn,  -turn},
-            {turn,  -turn},
-            {-turn, turn},
-            {-turn, turn},
             {turn,  -turn}};
 
     motor_power_limit(40);
@@ -211,8 +207,8 @@ void drive_line() {
     while (brain.driving_mode == LINE) {
         float output = calculate_correction();
         float comp = calc_compensation(brain.last_error);
-        steer_left(uint8_t( bound(brain.motor_power - comp - output, 0, 100)));
-        steer_right(uint8_t(bound(brain.motor_power - comp + output, 0, 100)));
+        steer_left(uint8_t( bound(brain.motor_power - comp - output, 5, 100)));
+        steer_right(uint8_t(bound(brain.motor_power - comp + output, 5, 100)));
         usleep(brain.pid_update_frequency_ms);
     }
 }
