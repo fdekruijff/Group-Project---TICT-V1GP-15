@@ -7,9 +7,6 @@
 #include <thread>
 #include <vector>
 
-//setup for object 
-int size_object = 0;
-
 
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
@@ -31,7 +28,6 @@ void turn_head_body(int degrees){
 int no_object(){
      while (afstand != 0){
         //drive 1 cm 
-        size_object++;
     } 
 }
 
