@@ -26,7 +26,7 @@ sensor_ultrasonic_t sonic_struct;
 int distance_to_object = 0; 
 
 /// limited distance stops PID 
-int limited_distance = 20;
+int limited_distance = 10;
 
 /// Calibration variable declaration
 bool calibrating = false;
@@ -96,13 +96,13 @@ void scan_ultrasonic(){
     //updates the distance_to_object, 0 / 25. 0 is error code.
 	while (true){
 		BP.get_sensor(s_ultrasonic, sonic_struct);
-        if (sonic_struct.cm > 0 and sonic_struct.cm <= 25){
+        if (sonic_struct.cm > 0 and sonic_struct.cm <25){
                distance_to_object = sonic_struct.cm;
         }else{ 
             distance_to_object = 0;
         }
         cout << distance_to_object << endl;
-    usleep(100000);
+    usleep(200000);
     }
 } 
 
@@ -150,8 +150,9 @@ void measure_contrast() {
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
 	while (true){
-		if (distance_to_object < limited_distance && afstand != 0){
+		if (distance_to_object < limited_distance and distance_to_object != 0){
 			brain.driving_mode = STOP;
+            stop();
 		}
 	}
 }
@@ -263,6 +264,7 @@ int main() {
     // Start sensor threads
     thread scan_distance (scan_ultrasonic);
     // TODO: right here
-	
+    thread stop_opbeject (object_in_the_way);
+    
     drive_line();
 }
