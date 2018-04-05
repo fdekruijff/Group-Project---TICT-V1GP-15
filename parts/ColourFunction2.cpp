@@ -29,7 +29,6 @@ int16_t high_reflection = 0;
 int16_t low_reflection = 0;
 sensor_color_t Colour1;
 
-
 // Driving modes
 const string LINE = "LINE";
 const string STOP = "STOP";
@@ -179,15 +178,15 @@ int find_colour()
 	while(search_colour == true)
 	{
 		BP.get_sensor(s_colour, Colour1);
-		if(Colour1.reflected_red >= 500 && Colour1.reflected_green < 500 && Colour1.reflected_blue < 500)
+		if(Colour1.reflected_red >= 350 && Colour1.reflected_green < 350 && Colour1.reflected_blue < 350)
 		{
 			return 1;
 		}
-		if(Colour1.reflected_red < 500 && Colour1.reflected_green >= 500 && Colour1.reflected_blue < 500)
+		if(Colour1.reflected_red < 350 && Colour1.reflected_green >= 350 && Colour1.reflected_blue < 350)
 		{
 			return 2;
 		}
-		if(Colour1.reflected_red < 500 && Colour1.reflected_green < 500 && Colour1.reflected_blue >= 500)
+		if(Colour1.reflected_red < 350 && Colour1.reflected_green < 350 && Colour1.reflected_blue >= 350)
 		{
 			return 3;
 		}
@@ -216,13 +215,43 @@ void folour_control()
 	}
 }
 
+void find_colour_values()
+{
+	while(intersection == true)
+	{
+		BP.get_sensor(s_colour, Colour1);
+		cout << "high ref: " << int(high_reflection) << "  red: " << Colour1.reflected_red << "  green: " << Colour1.reflected_green << "  blue: " << Colour1.reflected_blue << endl;
+		sleep(1);
+	}
+}
+
 void find_intersection()
 {
 	while(intersection == true)
 	{
 		BP.get_sensor(s_colour, Colour1);
-		cout << "high ref: " << int(high_reflection) << "red: " << Colour1.reflected_red << "green: " << Colour1.reflected_green << "blue: " << Colour1.reflected_blue;
-		sleep(0.1);
+		if(Colour1.reflected_red <= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
+		{
+			cout << "found intersection" << endl;
+		}
+		if(Colour1.reflected_red >= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
+		{
+			cout << "found closed intersection" << endl;
+		}
+		sleep(1);
+	}
+}
+
+bool find_intersection()
+{
+	while(intersection == true)
+	{
+		BP.get_sensor(s_colour, Colour1);
+		if(Colour1.reflected_red <= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
+		{
+			cout << "found intersection" << endl;
+			return true;
+		}
 	}
 }
 
@@ -231,5 +260,6 @@ int main() {
     calibrate();
 //    brain.driving_mode = LINE;
 //    drive_line();
+//	find_colour_values();
 	find_intersection();
 }
