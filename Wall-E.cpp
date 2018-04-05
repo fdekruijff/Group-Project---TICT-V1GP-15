@@ -12,12 +12,21 @@ using namespace std;
 BrickPi3 BP;
 
 /// Motor / Sensor variable declaration
-uint8_t s_color = PORT_1;
+uint8_t s_ultrasonic = PORT_3;                       // Ultrasonic sensor
+uint8_t s_color = PORT_1;                       // Color sensor
 uint8_t s_contrast = PORT_2;                    // Light sensor
 uint8_t m_head = PORT_A;                        // Head motor
 uint8_t m_left = PORT_B;                        // Left motor
 uint8_t m_right = PORT_C;                       // Right motor
-sensor_light_t contrast_struct;
+
+sensor_light_t      contrast_struct;
+sensor_ultrasonic_t sonic_struct;
+
+/// Ultrasonic sensor variable declaration
+int distance_to_object = 0; 
+
+/// limited distance stops PID 
+int limited_distance = 20;
 
 /// Calibration variable declaration
 bool calibrating = false;
@@ -62,6 +71,7 @@ void setup() {
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
     BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
+    BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
 }
 
 void stop() {
@@ -81,6 +91,20 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_left, uint8_t(power), 0);
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
+
+void scan_ultrasonic(){
+    //updates the distance_to_object, 0 / 25. 0 is error code.
+	while (true){
+		BP.get_sensor(s_ultrasonic, sonic_struct);
+        if (sonic_struct.cm > 0 and sonic_struct.cm <= 25){
+               distance_to_object = sonic_struct.cm;
+        }else{ 
+            distance_to_object = 0;
+        }
+        cout << distance_to_object << endl;
+    usleep(100000);
+    }
+} 
 
 int16_t get_contrast() {
     /// Returns the reflected black / white contrast.
@@ -123,16 +147,21 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
+//if a object is in the way of the PID it stops the PID.
+void object_in_the_way(){
+	while (true){
+		if (distance_to_object < limited_distance && afstand != 0){
+			brain.driving_mode = STOP;
+		}
+	}
+}
+
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
     thread measure(measure_contrast);
     int turn = 180;
     vector<vector<int>> power_profile = {
-            {turn,  -turn},
-            {-turn, turn},
-            {-turn, turn},
-            {turn,  -turn},
             {turn,  -turn},
             {-turn, turn},
             {-turn, turn},
@@ -211,8 +240,8 @@ void drive_line() {
     while (brain.driving_mode == LINE) {
         float output = calculate_correction();
         float comp = calc_compensation(brain.last_error);
-        steer_left(uint8_t( bound(brain.motor_power - comp - output, 0, 100)));
-        steer_right(uint8_t(bound(brain.motor_power - comp + output, 0, 100)));
+        steer_left(uint8_t( bound(brain.motor_power - comp - output, 5, 100)));
+        steer_right(uint8_t(bound(brain.motor_power - comp + output, 5, 100)));
         usleep(brain.pid_update_frequency_ms);
     }
 }
@@ -232,7 +261,8 @@ int main() {
     calibrate();
 
     // Start sensor threads
+    thread scan_distance (scan_ultrasonic);
     // TODO: right here
-
+	
     drive_line();
 }
