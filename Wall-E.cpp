@@ -25,6 +25,9 @@ sensor_ultrasonic_t sonic_struct;
 /// Ultrasonic sensor variable declaration
 int distance_to_object = 0; 
 
+/// limited distance stops PID 
+int limited_distance = 20;
+
 /// Calibration variable declaration
 bool calibrating = false;
 int16_t high_reflection = 0;                    // Black
@@ -144,6 +147,15 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
+//if a object is in the way of the PID it stops the PID.
+void object_in_the_way(){
+	while (true){
+		if (distance_to_object < limited_distance && afstand != 0){
+			brain.driving_mode = STOP;
+		}
+	}
+}
+
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
@@ -251,6 +263,6 @@ int main() {
     // Start sensor threads
     thread scan_distance (scan_ultrasonic);
     // TODO: right here
-
+	
     drive_line();
 }
