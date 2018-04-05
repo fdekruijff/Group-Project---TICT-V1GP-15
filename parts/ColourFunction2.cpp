@@ -22,6 +22,9 @@ sensor_light_t contrast_struct;
 
 // Calibration variables
 bool calibrating = false;
+bool search_colour = true;
+bool intersection = true;
+bool c_control =false;
 int16_t high_reflection = 0;
 int16_t low_reflection = 0;
 sensor_color_t Colour1;
@@ -60,7 +63,7 @@ void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
-    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
+    BP.set_sensor_type(s_colour, SENSOR_TYPE_NXT_COLOR_FULL);
 }
 
 void stop() {
@@ -171,60 +174,62 @@ void drive_line() {
     }
 }
 
-int Find_colour()
+int find_colour()
 {
-	while(true)
+	while(search_colour == true)
 	{
-		BP.get_sensor(s_color, Color1);
-		if(Colour1.reflected_red >= 500 && Colour1.reflected_green < 500 && Colour1.refelected_blue < 500)
+		BP.get_sensor(s_colour, Colour1);
+		if(Colour1.reflected_red >= 500 && Colour1.reflected_green < 500 && Colour1.reflected_blue < 500)
 		{
 			return 1;
 		}
-		if(Colour1.reflected_red < 500 && Colour1.reflected_green >= 500 && Colour1.refelected_blue < 500)
+		if(Colour1.reflected_red < 500 && Colour1.reflected_green >= 500 && Colour1.reflected_blue < 500)
 		{
 			return 2;
-		if(Colour1.reflected_red < 500 && Colour1.reflected_green < 500 && Colour1.refelected_blue >= 500)
+		}
+		if(Colour1.reflected_red < 500 && Colour1.reflected_green < 500 && Colour1.reflected_blue >= 500)
 		{
 			return 3;
-		sleep(0.1)	
+		}
+		sleep(0.1);
 	}
 }
 
-void Colour_control()
+void folour_control()
 {
-	while(true)
+	while(c_control == true)
 	{
-		if(Find_colour() == 1)
+		if(find_colour() == 1)
 		{
 			cout << "Found red";
 //			stop();
 //			break;
 		}
-		if(Find_colour() == 2)
+		if(find_colour() == 2)
 		{
 			cout << "Found green";
 		}
-		if(Find_colour() == 3)
+		if(find_colour() == 3)
 		{
 			cout << "Found blue";
 		}
 	}
 }
 
-bool find_intersection()
+void find_intersection()
 {
-	while(true)
+	while(intersection == true)
 	{
-		BP.get_sensor(s_color, Color1);
+		BP.get_sensor(s_colour, Colour1);
 		cout << "high ref: " << int(high_reflection) << "red: " << Colour1.reflected_red << "green: " << Colour1.reflected_green << "blue: " << Colour1.reflected_blue;
-		sleep(0.1)
+		sleep(0.1);
 	}
 }
 
 int main() {
     setup();
-//    calibrate();
+    calibrate();
 //    brain.driving_mode = LINE;
 //    drive_line();
-	Find_Red();
+	find_intersection();
 }
