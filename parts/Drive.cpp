@@ -1,5 +1,3 @@
-
-
 #include "BrickPi3.h"   // BrickPi3
 #include <iostream>     // cout
 #include <unistd.h>     // sleep
@@ -35,23 +33,27 @@ void fwd(void){
 }
 
 //Drive
-void drive(float s){
-	int degree =38.5 * s;
-	int x = degree%360;
-	cout<< x;
-	for(int i=0; i<(degree/360); i++){
-		if(i==0){
-			BP.set_motor_position_relative(m_left, x);
-			BP.set_motor_position_relative(m_right, x);
-			
-			
-			usleep(500000);
-			
-		}else{
-			BP.set_motor_position_relative(m_left, 360);
-			BP.set_motor_position_relative(m_right, 360);
-			
-			usleep(1000000);
+void drive(vector<int> distance){
+	if(distance[0]== 0){
+		//turn
+		BP.set_motor_dps(m_left, 180);
+		BP.set_motor_dps(m_right, 180*-1);
+		sleep(1);
+		stop();
+	}else if(distance[0]==1){
+		//drive
+		int degree =38.5 * distance[2];
+		for(int i=0; i<(degree/360); i++){
+			if(i==0){
+				BP.set_motor_position_relative(m_left, degree%360);
+				BP.set_motor_position_relative(m_right, degree%360);
+				usleep(500000);
+			}else{
+				BP.set_motor_dps(m_left, 180);
+				BP.set_motor_dps(m_right, 180);
+				sleep(2);
+				stop();
+			}
 		}
 	}
 }
@@ -86,8 +88,8 @@ int main(){
 	signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
   	BP.detect(); // Make sure that the BrickPi3 is communicating and that the firmware is compatible with the drivers.
   	BP.set_motor_limits(PORT_A, 40, 0);
-	BP.set_motor_limits(PORT_B, 80, 0);
-	BP.set_motor_limits(PORT_C, 80, 0);
+	BP.set_motor_limits(PORT_B, 60, 0);
+	BP.set_motor_limits(PORT_C, 60, 0);
   	char inp;
 
 	while(true){
@@ -107,7 +109,7 @@ int main(){
 				right();
 			}
 		else if (inp=='d'){
-				float s = 10;
+				vector<int> s = {1, 0, 10} //drive or steer, degrees(rigth positive, left negative), distance
 				drive(s);
 			}
 		else if (inp=='s'){

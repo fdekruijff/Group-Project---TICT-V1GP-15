@@ -13,7 +13,7 @@ using namespace std;
 BrickPi3 BP;
 
 // Motor / sensor variables
-uint8_t s_colour = PORT_1;
+uint8_t s_colour = PORT_1;				// Colour sensor
 uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
@@ -197,17 +197,27 @@ void Colour_control()
 		if(Find_colour() == 1)
 		{
 			cout << "Found red";
-			stop();
-			break;
+//			stop();
+//			break;
 		}
 		if(Find_colour() == 2)
 		{
-			cout << "Found finish";
+			cout << "Found green";
 		}
 		if(Find_colour() == 3)
 		{
 			cout << "Found blue";
 		}
+	}
+}
+
+bool find_intersection()
+{
+	while(true)
+	{
+		BP.get_sensor(s_color, Color1);
+		cout << "high ref: " << int(high_reflection) << "red: " << Colour1.reflected_red << "green: " << Colour1.reflected_green << "blue: " << Colour1.reflected_blue;
+		sleep(0.1)
 	}
 }
 
