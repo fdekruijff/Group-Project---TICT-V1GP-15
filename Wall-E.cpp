@@ -18,9 +18,11 @@ uint8_t s_contrast = PORT_2;                    // Light sensor
 uint8_t m_head = PORT_A;                        // Head motor
 uint8_t m_left = PORT_B;                        // Left motor
 uint8_t m_right = PORT_C;                       // Right motor
-sensor_light_t contrast_struct;
 
-//Ultrasonic sensor variable declaration
+sensor_light_t      contrast_struct;
+sensor_ultrasonic_t sonic_struct;
+
+/// Ultrasonic sensor variable declaration
 int distance_to_object = 0; 
 
 /// Calibration variable declaration
@@ -66,7 +68,7 @@ void setup() {
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
     BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
-    P.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC); 
+    BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
 }
 
 void stop() {
@@ -89,15 +91,15 @@ void motor_power_limit(int power) {
 
 void scan_ultrasonic(){
     //updates the distance_to_object, 0 / 25. 0 is error code.
-	sensor_ultrasonic_t Ultrasonic2;
 	while (true){
-		BP.get_sensor(s_ultrasonic, Ultrasonic2);
-        if (Ultrasonic2.cm > 0 and Ultrasonic2.cm <= 25){
-               distance_to_object = Ultrasonic2.cm;
+		BP.get_sensor(s_ultrasonic, sonic_struct);
+        if (sonic_struct.cm > 0 and sonic_struct.cm <= 25){
+               distance_to_object = sonic_struct.cm;
         }else{ 
             distance_to_object = 0;
         }
-    sleep(0.01);
+        cout << distance_to_object << endl;
+    usleep(100000);
     }
 } 
 
@@ -223,7 +225,6 @@ bool is_white() {
 void drive_line() {
     /// Threaded function that follows measured contrast based on sensor reading and set point.
     brain.driving_mode = LINE;
-    thread scan (scan_ultrasonic);
     while (brain.driving_mode == LINE) {
         float output = calculate_correction();
         float comp = calc_compensation(brain.last_error);
@@ -248,6 +249,7 @@ int main() {
     calibrate();
 
     // Start sensor threads
+    thread scan_distance (scan_ultrasonic);
     // TODO: right here
 
     drive_line();
