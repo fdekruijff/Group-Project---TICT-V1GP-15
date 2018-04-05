@@ -37,9 +37,9 @@ int no_object(){
 
 
 // main function to drive around the obstacle. it calls all the funcions in the right order
-int around_object(0){
+int around_object(){
     turn_head_body(90);
-    no_object
+    no_object();
     //drive 10 cm 
     turn_head_body(90*-1);
     //drive 10 cm
