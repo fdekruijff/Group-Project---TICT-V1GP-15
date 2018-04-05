@@ -171,7 +171,7 @@ void drive_line() {
     }
 }
 
-bool Find_colour()
+int Find_colour()
 {
 	while(true)
 	{
