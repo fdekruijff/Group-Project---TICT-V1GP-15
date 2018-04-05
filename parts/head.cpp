@@ -16,7 +16,7 @@ uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
 uint8_t m_right = PORT_C;               // Right motor
-int afstand = 0; 
+int distance_to_object = 0; 
 
 //Exit signal
 
@@ -47,9 +47,9 @@ void scan_ultrasonic(){
 	while (true){
 		BP.get_sensor(PORT_3, Ultrasonic2);
         if (Ultrasonic2.cm > 0 and Ultrasonic2.cm < 25){
-               afstand = Ultrasonic2.cm;
+               distance_to_object = Ultrasonic2.cm;
         }else{ 
-            afstand = 0;
+            distance_to_object = 0;
         }
     sleep(0.01);
     }

@@ -7,14 +7,11 @@
 #include <thread>
 #include <vector>
 
-//setup for object 
-int size_object = 0;
-
 
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
 	int limited_distance = 20;
-	if (afstand < limited_distance && afstand != 0){
+	if (distance_to_object < limited_distance && afstand != 0){
 		brain.driving_mode = STOP;
 	}
 }
@@ -29,17 +26,16 @@ void turn_head_body(int degrees){
 
 //keeps on driving till there is no object.
 int no_object(){
-     while (afstand != 0){
+     while (distance_to_object != 0){
         //drive 1 cm 
-        size_object++;
     } 
 }
 
 
 // main function to drive around the obstacle. it calls all the funcions in the right order
-int around_object(0){
+int around_object(){
     turn_head_body(90);
-    no_object
+    no_object();
     //drive 10 cm 
     turn_head_body(90*-1);
     //drive 10 cm
