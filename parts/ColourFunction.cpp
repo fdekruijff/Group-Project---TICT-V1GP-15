@@ -18,20 +18,20 @@ uint8_t m_right = PORT_C;               // Right motor
 bool Calibrate = false;
 
 int16_t Color_Value = 0;
+sensor_color_t      Color1;
 
 void Setup()
 {
 	BP.detect();
-	BP.set_sensor_type(PORT_1, SENSOR_TYPE_NXT_COLOR_FULL);
-	sensor_color_t      Color1;
+	BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
 }
 
-bool Find_Red(void)
+void Find_Red()
 {
 	while(true)
 	{
 		error = 0;
-		if(BP.get_sensor(PORT_1, Color1) == 0)
+		if(BP.get_sensor(s_color, Color1) == 0)
 		{
 			cout << "Color sensor (S1): detected  " << (int) Color1.color;
 			cout << " red" << setw(4) << Color1.reflected_red;
@@ -44,7 +44,7 @@ bool Find_Red(void)
 
 int main()
 {
-	Setup()
-	signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
-	Find_Red()
+	Setup();
+//	signal(SIGINT, exit_signal_handler); // register the exit function for Ctrl+C
+	Find_Red();
 }
