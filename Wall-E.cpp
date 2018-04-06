@@ -36,6 +36,7 @@ int16_t low_reflection = 0;                     // White
 /// Driving modes variable declaration
 const string LINE = "LINE";
 const string STOP = "STOP";
+const string GRID = "GRID";
 const string FREE = "FREE";
 
 /// Wall-E brain settings struct declaration
@@ -48,7 +49,7 @@ struct wall_e_settings {
     float d_gain = 2.8;                         // Domain: unknown
     float p_gain = 0.295;                       // Domain: [0.275, 0.325]
     float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 80;                       // Domain: [10, 80]
+    int motor_power = 30;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
     string driving_mode = STOP;                 // Default driving mode
 };
@@ -235,15 +236,23 @@ bool is_white() {
     return sensor < high_reflection && sensor > brain.set_point;
 }
 
-void drive_line() {
-    /// Threaded function that follows measured contrast based on sensor reading and set point.
-    brain.driving_mode = LINE;
-    while (brain.driving_mode == LINE) {
-        float output = calculate_correction();
-        float comp = calc_compensation(brain.last_error);
-        steer_left(uint8_t( bound(brain.motor_power - comp - output, 5, 100)));
-        steer_right(uint8_t(bound(brain.motor_power - comp + output, 5, 100)));
-        usleep(brain.pid_update_frequency_ms);
+void drive() {
+    /// Threaded function that applies certain drive mode.
+    while (true) {
+        if (brain.driving_mode == STOP || brain.driving_mode == FREE)  {
+            usleep(250000);
+            continue;
+        }
+        if (brain.driving_mode == LINE) {
+            float output = calculate_correction();
+            float comp = calc_compensation(brain.last_error);
+            steer_left(uint8_t( bound(brain.motor_power - comp - output, 5, 100)));
+            steer_right(uint8_t(bound(brain.motor_power - comp + output, 5, 100)));
+            usleep(brain.pid_update_frequency_ms);
+        }
+        if (brain.driving_mode == GRID) {
+            // TODO: implement GRID driving code here.
+        }
     }
 }
 
@@ -254,7 +263,7 @@ void find_line() {
         usleep(500000);
     }
     stop();
-    drive_line();
+    brain.driving_mode == LINE;
 }
 
 int main() {
@@ -263,8 +272,11 @@ int main() {
 
     // Start sensor threads
     thread scan_distance (scan_ultrasonic);
-    // TODO: right here
     thread stop_opbeject (object_in_the_way);
-    
-    drive_line();
+
+    // Start driving thread
+    thread init_drive (drive);
+
+
+
 }
