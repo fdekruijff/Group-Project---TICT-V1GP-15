@@ -12,7 +12,7 @@ using namespace std;
 BrickPi3 BP;
 
 /// Motor / Sensor variable declaration
-uint8_t s_ultrasonic = PORT_3;                       // Ultrasonic sensor
+uint8_t s_ultrasonic = PORT_3;                  // Ultrasonic sensor
 uint8_t s_color = PORT_1;                       // Color sensor
 uint8_t s_contrast = PORT_2;                    // Light sensor
 uint8_t m_head = PORT_A;                        // Head motor
@@ -40,7 +40,7 @@ struct wall_e_settings {
     float last_error = 0.0;                     // Value set by PID
     float i_error = 0.0;                        // Value set by PID
     float set_point = 0.0;                      // Value set by sensor
-    float last_time = 1.0;                      // Domain unknown
+    float last_time = 1.0;                      // Domain: unknown
     float i_gain = 0.01;                        // Domain: unknown
     float d_gain = 2.8;                         // Domain: unknown
     float p_gain = 0.295;                       // Domain: [0.275, 0.325]
