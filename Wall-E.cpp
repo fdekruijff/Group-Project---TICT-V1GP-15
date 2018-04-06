@@ -12,14 +12,15 @@ using namespace std;
 BrickPi3 BP;
 
 /// Motor / Sensor variable declaration
-uint8_t s_ultrasonic = PORT_3;                  // Ultrasonic sensor
 uint8_t s_color = PORT_1;                       // Color sensor
 uint8_t s_contrast = PORT_2;                    // Light sensor
+uint8_t s_ultrasonic = PORT_3;                  // Ultrasonic sensor
 uint8_t m_head = PORT_A;                        // Head motor
 uint8_t m_left = PORT_B;                        // Left motor
 uint8_t m_right = PORT_C;                       // Right motor
 
-sensor_light_t      contrast_struct;
+/// Sensor data structures
+sensor_light_t contrast_struct;
 sensor_ultrasonic_t sonic_struct;
 
 /// limited distance stops PID
@@ -41,7 +42,7 @@ thread scan_distance;
 thread stop_object;
 thread init_drive;
 
-/// Wall-E brain settings struct declaration
+/// Wall-E brain settings data structure declaration
 struct wall_e_settings {
     float last_error = 0.0;                     // Value set by PID
     float i_error = 0.0;                        // Value set by PID
@@ -53,10 +54,11 @@ struct wall_e_settings {
     float compensation_multiplier = 950.0;      // Domain: [750, 1200]
     int motor_power = 30;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
+    bool exit = false;                          // Exit boolean to stop Wall-E
     string driving_mode = STOP;                 // Default driving mode
-    bool exit = false;
 };
 
+///  Declare the brain!
 wall_e_settings brain;
 
 void exit_signal_handler(int sig);
@@ -101,8 +103,10 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
 
-void scan_ultrasonic(){
-    while (true){
+void scan_ultrasonic() {
+    /// Returns ultrasonic value
+    // TODO: maybe refactor this code.
+    while (true) {
         BP.get_sensor(s_ultrasonic, sonic_struct);
         cout << sonic_struct.cm << endl;
         usleep(200000);
@@ -151,13 +155,13 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
-//if a object is in the way of the PID it stops the PID.
-void object_in_the_way(){
-    sleep(3);
-    while (true){
-        if (sonic_struct.cm  < limited_distance){
+
+void object_in_the_way() {
+    /// If a object is in the way of the PID it stops the PID.
+    sleep(1); //TODO: this is bad practice
+    while (true) {
+        if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
-            stop();
         }
     }
 }
@@ -188,15 +192,15 @@ void calibrate() {
          " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
 }
 
-int turn_head(int degree){
-	BP.set_motor_position(PORT_A, degree);
+int turn_head(int degree) {
+    BP.set_motor_position(m_head, degree);
 }
 
-///keeps on driving till there is no object.
-int no_object(){
-     while (distance_to_object != 0){
+int no_object() {
+    ///keeps on driving till there is no object.
+    while (sonic_struct.cm < 20) {
         //drive 1 cm 
-    } 
+    }
 }
 
 void steer_left(uint8_t amount) {
@@ -209,10 +213,10 @@ void steer_right(uint8_t amount) {
     BP.set_motor_power(m_right, amount);
 }
 
-///turns head and body at the same time in threads. 
-void turn_head_body(int degrees){
-	//thread turn (left(degrees));
-	//thread head_turn (turn_head(degrees));
+void turn_head_body(int degrees) {
+    ///turns head and body at the same time in threads.
+    //thread turn (left(degrees));
+    //thread head_turn (turn_head(degrees));
 }
 
 float bound(float value, float begin, float end) {
@@ -260,7 +264,7 @@ bool is_white() {
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (true) {
-        if (brain.driving_mode == STOP || brain.driving_mode == FREE)  {
+        if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
             usleep(250000);
             continue;
         }
@@ -268,7 +272,7 @@ void drive() {
             float output = calculate_correction();
             float comp = calc_compensation(brain.last_error);
 
-            float left =  int(bound(brain.motor_power - (comp + 5) - output, -90, 90));
+            float left = int(bound(brain.motor_power - (comp + 5) - output, -90, 90));
             float right = int(bound(brain.motor_power - (comp + 5) + output, -90, 90));
 
             cout << brain.last_error << endl;
@@ -292,19 +296,20 @@ void find_line() {
     brain.driving_mode == LINE;
 }
 
-/// main function to drive around the obstacle. it calls all the funcions in the right order
-int around_object(){
+
+int around_object() {
+    /// main function to drive around the obstacle. it calls all the functions in the right order
     //turn_head_body(90);
     no_object();
     //drive 10 cm 
-    turn_head_body(90*-1);
+    turn_head_body(90 * -1);
     //drive 10 cm
     turn_head(90);
     no_object();
     //turn_head_body(90*-1);
     //drive size_object;
-    find_line();   
-} 
+    find_line();
+}
 
 
 int main() {
@@ -315,11 +320,11 @@ int main() {
     brain.driving_mode = LINE;
 
     // Start sensor threads
-    thread scan_distance (scan_ultrasonic);
-    thread stop_object (object_in_the_way);
+    thread scan_distance(scan_ultrasonic);
+    thread stop_object(object_in_the_way);
 
     // Start driving thread
-    thread init_drive (drive);
+    thread init_drive(drive);
 
     while (brain.exit) {
         // Just a infinite loop to keep the threads
