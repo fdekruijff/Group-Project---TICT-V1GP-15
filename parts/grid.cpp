@@ -279,6 +279,7 @@ void find_colour_values()
 void find_intersection()
 // finds intersections in the back line and finds intersections that are closed.
 {
+	sleep(1)
 	while(intersection == true)
 	{
 		BP.get_sensor(s_colour, Colour_struct);
@@ -294,7 +295,7 @@ void find_intersection()
 			//brain.driving_mode = STOP;
 			//break;
 		}
-		usleep(100000);//Sleep so it doesn't not spam the console.
+		usleep(100000);//Sleep so it doesn't spam the console.
 	}
 }
 
@@ -305,8 +306,8 @@ int main() {
     brain.driving_mode = LINE;
 
     // Start sensor threads
-//    thread scan_distance (scan_ultrasonic);
-//    thread stop_opbeject (object_in_the_way);
+    thread scan_distance (scan_ultrasonic);
+    thread stop_opbeject (object_in_the_way);
 	
 
     // Start driving thread
