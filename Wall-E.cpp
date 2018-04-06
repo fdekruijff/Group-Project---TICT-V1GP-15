@@ -39,6 +39,11 @@ const string STOP = "STOP";
 const string GRID = "GRID";
 const string FREE = "FREE";
 
+/// Thread declaration
+thread scan_distance;
+thread stop_object;
+thread init_drive;
+
 /// Wall-E brain settings struct declaration
 struct wall_e_settings {
     float last_error = 0.0;                     // Value set by PID
@@ -52,15 +57,27 @@ struct wall_e_settings {
     int motor_power = 30;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
     string driving_mode = STOP;                 // Default driving mode
+    bool exit = false;
 };
 
 wall_e_settings brain;
 
 void exit_signal_handler(int sig);
 
+void stop() {
+    /// Stops driving Wall-E and exit the threads.
+    BP.set_motor_power(m_right, 0);
+    BP.set_motor_power(m_left, 0);
+
+    scan_distance.join();
+    stop_object.join();
+    init_drive.join();
+}
+
 void exit_signal_handler(int sig) {
     /// Control-C handler that resets Brick Pi and exits application.
     if (sig == SIGINT) {
+        stop();
         BP.reset_all();                         // Reset everything so there are no run-away motors
         exit(-2);
     }
@@ -73,12 +90,6 @@ void setup() {
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
     BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
     BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
-}
-
-void stop() {
-    /// Stops driving Wall-E.
-    BP.set_motor_power(m_right, 0);
-    BP.set_motor_power(m_left, 0);
 }
 
 void motor_power(int power) {
@@ -242,8 +253,13 @@ void drive() {
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
             float comp = calc_compensation(brain.last_error);
-            steer_left(uint8_t(int(bound(brain.motor_power - (comp + 5) - output, -90, 90))));
-            steer_right(uint8_t(int(bound(brain.motor_power - (comp + 5) + output, -90, 90))));
+
+            float left =  int(bound(brain.motor_power - (comp + 5) - output, -90, 90));
+            float right = int(bound(brain.motor_power - (comp + 5) + output, -90, 90));
+
+            cout << brain.last_error << endl;
+            steer_left(uint8_t(left));
+            steer_right(uint8_t(right));
             usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
@@ -266,17 +282,19 @@ int main() {
     setup();
     calibrate();
 
+    // Default driving mode after starting thread.
     brain.driving_mode = LINE;
 
     // Start sensor threads
     thread scan_distance (scan_ultrasonic);
-    thread stop_opbeject (object_in_the_way);
+    thread stop_object (object_in_the_way);
 
     // Start driving thread
     thread init_drive (drive);
 
-    while (true) {
-        sleep(5);
+    while (brain.exit) {
+        // Just a infinite loop to keep the threads
+        usleep(500000);
     }
-
+    stop();
 }
