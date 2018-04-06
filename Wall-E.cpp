@@ -52,7 +52,7 @@ struct wall_e_settings {
     float i_gain = 0.0;                         // Domain: unknown
     float d_gain = 0.0;                         // Domain: unknown
     float p_gain = 0.285;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 1050.0;      // Domain: [750, 1200]
+    float compensation_multiplier = 1050.0;     // Domain: [750, 1200]
     int motor_power = 25;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 10500;        // Domain: [10000, 175000]
     bool think = true;                          // Exit boolean to stop Wall-E
@@ -282,8 +282,13 @@ void drive() {
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
             float comp = calc_compensation(brain.last_error);
-            steer_left(uint8_t(int(bound(brain.motor_power - comp - output, -100, 100))));
-            steer_right(uint8_t(int(bound(brain.motor_power - comp + output, -100, 100))));
+            float left = int(bound(brain.motor_power - comp - output, -100, 100));
+            float right = int(bound(brain.motor_power - comp + output, -100, 100));
+
+            cout << setw(7) << "error: " << setw(5) << brain.last_error << setw(7) << "comp: " << setw(5) << comp << setw(7) << "left: " << setw(5) << left << setw(7) << "right: " << setw(5) << right << endl;
+
+            steer_left(uint8_t(left));
+            steer_right(uint8_t(right));
             usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
