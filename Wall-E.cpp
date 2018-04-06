@@ -193,6 +193,7 @@ void object_in_the_way() {
     while (true) {
         if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
+		around_object();
         }
     }
 }
