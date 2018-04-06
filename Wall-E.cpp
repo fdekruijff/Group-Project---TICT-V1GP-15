@@ -94,18 +94,13 @@ void motor_power_limit(int power) {
 }
 
 void scan_ultrasonic(){
-    //updates the distance_to_object, 0 / 25. 0 is error code.
 	while (true){
 		BP.get_sensor(s_ultrasonic, sonic_struct);
-        if (sonic_struct.cm > 0 and sonic_struct.cm <25){
-               distance_to_object = sonic_struct.cm;
-        }else{ 
-            distance_to_object = 0;
-        }
-        cout << distance_to_object << endl;
-    usleep(200000);
+        cout << sonic_struct.cm << endl;
+        usleep(200000);
     }
 } 
+ 
 
 int16_t get_contrast() {
     /// Returns the reflected black / white contrast.
@@ -150,9 +145,11 @@ void measure_contrast() {
 
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
-	while (true){
-		if (distance_to_object < limited_distance and distance_to_object != 0){
+	while (object){
+		if (sonic_struct.cm  < limited_distance){
 			brain.driving_mode = STOP;
+            cout << STOP;
+            object = false;
             stop();
 		}
 	}
