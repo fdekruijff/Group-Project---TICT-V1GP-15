@@ -5,7 +5,6 @@
 #include <signal.h>
 #include <thread>
 #include <vector>
-#include <map>
 
 using namespace std;
 
@@ -18,7 +17,9 @@ uint8_t s_contrast = PORT_2;            // Light sensor
 uint8_t m_head = PORT_A;                // Head motor
 uint8_t m_left = PORT_B;                // Left motor
 uint8_t m_right = PORT_C;               // Right motor
+
 sensor_light_t contrast_struct;
+sensor_color_t Colour1;
 
 // Calibration variables
 bool calibrating = false;
@@ -27,7 +28,7 @@ bool intersection = true;
 bool c_control =false;
 int16_t high_reflection = 0;
 int16_t low_reflection = 0;
-sensor_color_t Colour1;
+
 
 // Driving modes
 const string LINE = "LINE";
@@ -174,6 +175,7 @@ void drive_line() {
 }
 
 int find_colour()
+// searches for the colour values and returns an int that stands for red, green and blue.
 {
 	while(search_colour == true)
 	{
@@ -194,15 +196,14 @@ int find_colour()
 	}
 }
 
-void folour_control()
+void colour_control()
+// uses the values the function find_colour() gives to do be able to do something with them.
 {
 	while(c_control == true)
 	{
 		if(find_colour() == 1)
 		{
 			cout << "Found red";
-//			stop();
-//			break;
 		}
 		if(find_colour() == 2)
 		{
@@ -216,9 +217,11 @@ void folour_control()
 }
 
 void find_colour_values()
+// uses the colour sensor to return the colour values to use them for calibation.
 {
 	while(intersection == true)
 	{
+		BP.get_sensor(s_contrast, contrast_struct);
 		BP.get_sensor(s_colour, Colour1);
 		cout << "high ref: " << int(high_reflection) << "  red: " << Colour1.reflected_red << "  green: " << Colour1.reflected_green << "  blue: " << Colour1.reflected_blue << endl;
 		sleep(1);
@@ -226,6 +229,7 @@ void find_colour_values()
 }
 
 void find_intersection()
+// finds intersections in the back line and finds intersections that are closed.
 {
 	while(intersection == true)
 	{
@@ -233,25 +237,16 @@ void find_intersection()
 		if(Colour1.reflected_red <= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
 		{
 			cout << "found intersection" << endl;
+			//stop();
+			//break;
 		}
 		if(Colour1.reflected_red >= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
 		{
 			cout << "found closed intersection" << endl;
+			//stop()
+			//break;
 		}
-		sleep(1);
-	}
-}
-
-bool find_intersection()
-{
-	while(intersection == true)
-	{
-		BP.get_sensor(s_colour, Colour1);
-		if(Colour1.reflected_red <= 350 && Colour1.reflected_green <= 350 && Colour1.reflected_blue <= 350)
-		{
-			cout << "found intersection" << endl;
-			return true;
-		}
+		sleep(1);// a sleep so it does not spam the console.
 	}
 }
 

@@ -115,6 +115,37 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
 
+void driving(int turn_drive, int degrees, int distance){
+    //Makes Wall-E turn and drive straight
+    int power =40;
+    degrees /= 5.625; //360 conversion to 64
+
+    //turn
+    if(turn_drive== 0){
+        if(degrees < 0){
+            degrees *= -1;
+            power *= -1;
+        }
+
+        BP.set_motor_power(m_left, power);
+        BP.set_motor_power(m_right, power*-1);
+        usleep(100000*degrees);
+        stop();
+
+        //drive
+    }else if(turn_drive==1){
+        if(distance < 0){
+            distance *= -1;
+            power *= -1;
+        }
+        BP.set_motor_power(m_left, power);
+        BP.set_motor_power(m_right, power);
+        usleep(76927*distance);
+        stop();
+    }
+
+}
+
 void scan_ultrasonic() {
     /// Returns ultrasonic value
     // TODO: maybe refactor this code.
@@ -164,18 +195,6 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
-
-void object_in_the_way() {
-    /// If a object is in the way of the PID it stops the PID.
-    sleep(1); //TODO: this is bad practice
-    while (brain.think) {
-        if (sonic_struct.cm < limited_distance) {
-            brain.driving_mode = STOP;
-            stand_still();
-        }
-    }
-}
-
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
@@ -210,7 +229,7 @@ int turn_head(int degrees) {
 int no_object() {
     ///keeps on driving till there is no object.
     while (sonic_struct.cm < 20) {
-        //drive 1 cm
+        driving(1, 0, 1);
     }
 }
 
@@ -226,8 +245,8 @@ void steer_right(uint8_t amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    //thread turn (left(degrees));
-    //thread head_turn (turn_head(degrees));
+    driving(0, degrees, 0);
+    turn_head(degrees);
 }
 
 float bound(float value, float begin, float end) {
@@ -282,13 +301,11 @@ void drive() {
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
             float comp = calc_compensation(brain.last_error);
-            float left = int(bound(brain.motor_power - comp - output, -100, 100));
-            float right = int(bound(brain.motor_power - comp + output, -100, 100));
 
             cout << setw(7) << "error: " << setw(5) << brain.last_error << setw(7) << "comp: " << setw(5) << comp << setw(7) << "left: " << setw(5) << left << setw(7) << "right: " << setw(5) << right << endl;
 
-            steer_left(uint8_t(left));
-            steer_right(uint8_t(right));
+            steer_left(uint8_t(int(bound(brain.motor_power - comp - output, -100, 100))));
+            steer_right(uint8_t(int(bound(brain.motor_power - comp + output, -100, 100))));
             usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
@@ -306,21 +323,30 @@ void find_line() {
     brain.driving_mode == LINE;
 }
 
-
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    //turn_head_body(90);
+    turn_head_body(-90);
     no_object();
-    //drive 10 cm
-    turn_head_body(90 * -1);
-    //drive 10 cm
+    driving(1, 0, 20);
+    turn_head_body(90);
+    driving(1, 0, 20);
     turn_head(90);
     no_object();
-    //turn_head_body(90*-1);
-    //drive size_object;
+    turn_head_body(-90);
     find_line();
 }
 
+
+void object_in_the_way() {
+    /// If a object is in the way of the PID it stops the PID.
+    sleep(1); //TODO: this is bad practice
+    while (brain.think) {
+        if (sonic_struct.cm < limited_distance) {
+            brain.driving_mode = STOP;
+            around_object();
+        }
+    }
+}
 
 int main() {
     setup();
