@@ -115,7 +115,7 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
 
-void driving(int turn_drive, int degrees, int distance){
+void dodge(int turn_drive, int degrees, int distance){
     //Makes Wall-E turn and drive straight
     int power =40;
     degrees /= 5.625; //360 conversion to 64
@@ -229,7 +229,7 @@ int turn_head(int degrees) {
 int no_object() {
     ///keeps on driving till there is no object.
     while (sonic_struct.cm < 20) {
-        driving(1, 0, 1);
+        dodge(1, 0, 1);
     }
 }
 
@@ -245,7 +245,7 @@ void steer_right(uint8_t amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    driving(0, degrees, 0);
+    dodge(0, degrees, 0);
     turn_head(degrees);
 }
 
@@ -325,14 +325,15 @@ void find_line() {
 
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    turn_head_body(-90);
-    no_object();
-    driving(1, 0, 20);
-    turn_head_body(90);
-    driving(1, 0, 20);
+    dodge(0, -90, 0);
     turn_head(90);
     no_object();
-    turn_head_body(-90);
+    dodge(1, 0, 20);
+    turn_head_body(90);
+    dodge(1, 0, 20);
+    turn_head(90);
+    no_object();
+    turn_head_body(90);
     find_line();
 }
 
