@@ -331,7 +331,7 @@ int around_object() {
     no_object();
     dodge(1, 0, 10);
     turn_head_body(90);
-    dodge(1, 0, 10);
+    dodge(1, 0, 20);
     turn_head(90);
     dodge(1, 0, 10)
     no_object();
