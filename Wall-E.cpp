@@ -327,11 +327,13 @@ int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
     dodge(0, -90, 0);
     turn_head(90);
+    dodge(1, 0, 10)
     no_object();
-    dodge(1, 0, 20);
+    dodge(1, 0, 10);
     turn_head_body(90);
-    dodge(1, 0, 20);
+    dodge(1, 0, 10);
     turn_head(90);
+    dodge(1, 0, 10)
     no_object();
     turn_head_body(90);
     find_line();
