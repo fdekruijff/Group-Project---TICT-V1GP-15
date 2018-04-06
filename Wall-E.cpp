@@ -22,9 +22,6 @@ uint8_t m_right = PORT_C;                       // Right motor
 sensor_light_t      contrast_struct;
 sensor_ultrasonic_t sonic_struct;
 
-/// Ultrasonic sensor variable declaration
-int distance_to_object = 0;
-
 /// limited distance stops PID
 int limited_distance = 10;
 
@@ -191,6 +188,17 @@ void calibrate() {
          " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
 }
 
+int turn_head(int degree){
+	BP.set_motor_position(PORT_A, degree);
+}
+
+///keeps on driving till there is no object.
+int no_object(){
+     while (distance_to_object != 0){
+        //drive 1 cm 
+    } 
+}
+
 void steer_left(uint8_t amount) {
     /// Steer left motor.
     BP.set_motor_power(m_left, amount);
@@ -199,6 +207,12 @@ void steer_left(uint8_t amount) {
 void steer_right(uint8_t amount) {
     /// Steer right motor.
     BP.set_motor_power(m_right, amount);
+}
+
+///turns head and body at the same time in threads. 
+void turn_head_body(int degrees){
+	//thread turn (left(degrees));
+	//thread head_turn (turn_head(degrees));
 }
 
 float bound(float value, float begin, float end) {
@@ -277,6 +291,21 @@ void find_line() {
     stop();
     brain.driving_mode == LINE;
 }
+
+/// main function to drive around the obstacle. it calls all the funcions in the right order
+int around_object(){
+    //turn_head_body(90);
+    no_object();
+    //drive 10 cm 
+    turn_head_body(90*-1);
+    //drive 10 cm
+    turn_head(90);
+    no_object();
+    //turn_head_body(90*-1);
+    //drive size_object;
+    find_line();   
+} 
+
 
 int main() {
     setup();
