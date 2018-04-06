@@ -23,9 +23,9 @@ sensor_light_t      contrast_struct;
 sensor_ultrasonic_t sonic_struct;
 
 /// Ultrasonic sensor variable declaration
-int distance_to_object = 0; 
+int distance_to_object = 0;
 
-/// limited distance stops PID 
+/// limited distance stops PID
 int limited_distance = 10;
 
 /// Calibration variable declaration
@@ -94,13 +94,13 @@ void motor_power_limit(int power) {
 }
 
 void scan_ultrasonic(){
-	while (true){
-		BP.get_sensor(s_ultrasonic, sonic_struct);
+    while (true){
+        BP.get_sensor(s_ultrasonic, sonic_struct);
         cout << sonic_struct.cm << endl;
         usleep(200000);
     }
-} 
- 
+}
+
 
 int16_t get_contrast() {
     /// Returns the reflected black / white contrast.
@@ -145,14 +145,13 @@ void measure_contrast() {
 
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
-	while (object){
-		if (sonic_struct.cm  < limited_distance){
-			brain.driving_mode = STOP;
-            cout << STOP;
-            object = false;
+    sleep(3);
+    while (true){
+        if (sonic_struct.cm  < limited_distance){
+            brain.driving_mode = STOP;
             stop();
-		}
-	}
+        }
+    }
 }
 
 void calibrate() {
@@ -243,8 +242,8 @@ void drive() {
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
             float comp = calc_compensation(brain.last_error);
-            steer_left(uint8_t( bound(brain.motor_power - comp - output, 5, 100)));
-            steer_right(uint8_t(bound(brain.motor_power - comp + output, 5, 100)));
+            steer_left(uint8_t(int(bound(brain.motor_power - (comp + 5) - output, -90, 90))));
+            steer_right(uint8_t(int(bound(brain.motor_power - (comp + 5) + output, -90, 90))));
             usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
@@ -267,6 +266,8 @@ int main() {
     setup();
     calibrate();
 
+    brain.driving_mode = LINE;
+
     // Start sensor threads
     thread scan_distance (scan_ultrasonic);
     thread stop_opbeject (object_in_the_way);
@@ -274,6 +275,8 @@ int main() {
     // Start driving thread
     thread init_drive (drive);
 
-
+    while (true) {
+        sleep(5);
+    }
 
 }
