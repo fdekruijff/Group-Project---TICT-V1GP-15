@@ -103,6 +103,37 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
 
+void driving(int turn_drive, int degrees, int distance){
+	//Makes Wall-E turn and drive straight
+	int power =40;
+	float degrees /= 5.625; //360 conversion to 64
+	
+	//turn
+	if(turn_drive== 0){
+		if(degrees < 0){
+			degrees *= -1;
+			power *= -1;
+		}
+		
+		BP.set_motor_power(m_left, power);
+		BP.set_motor_power(m_right, power*-1);
+		usleep(100000*degrees);
+		stop();
+		
+	//drive
+	}else if(turn_drive==1){
+		if(distance < 0){
+			distance *= -1;
+			power *= -1;
+		}
+		BP.set_motor_power(m_left, power);
+		BP.set_motor_power(m_right, power);
+		usleep(76927*distance);
+		stop();
+	}
+	
+}
+
 void scan_ultrasonic() {
     /// Returns ultrasonic value
     // TODO: maybe refactor this code.
@@ -162,6 +193,7 @@ void object_in_the_way() {
     while (true) {
         if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
+		around_object();
         }
     }
 }
@@ -199,7 +231,7 @@ int turn_head(int degree) {
 int no_object() {
     ///keeps on driving till there is no object.
     while (sonic_struct.cm < 20) {
-        //drive 1 cm 
+        driving(1, 0, 1)  
     }
 }
 
@@ -215,8 +247,8 @@ void steer_right(uint8_t amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    //thread turn (left(degrees));
-    //thread head_turn (turn_head(degrees));
+    thread turn (driving(0, degrees, 0));
+    thread head_turn (turn_head(degrees));
 }
 
 float bound(float value, float begin, float end) {
@@ -299,15 +331,14 @@ void find_line() {
 
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    //turn_head_body(90);
+    turn_head_body(90);
     no_object();
-    //drive 10 cm 
+    driving(1, 0, 10) 
     turn_head_body(90 * -1);
-    //drive 10 cm
+    driving(1, 0, 10)
     turn_head(90);
     no_object();
-    //turn_head_body(90*-1);
-    //drive size_object;
+    turn_head_body(90*-1);
     find_line();
 }
 
