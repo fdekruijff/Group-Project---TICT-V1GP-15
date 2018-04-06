@@ -279,7 +279,7 @@ void find_colour_values()
 void find_intersection()
 // finds intersections in the back line and finds intersections that are closed.
 {
-	sleep(1)
+	sleep(1);
 	while(intersection == true)
 	{
 		BP.get_sensor(s_colour, Colour_struct);
