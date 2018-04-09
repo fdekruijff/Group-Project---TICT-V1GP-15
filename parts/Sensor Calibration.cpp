@@ -21,7 +21,7 @@ using namespace std;
 
 void exit_signal_handler(int signo);
 
-void brick_py_setup() {
+void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
