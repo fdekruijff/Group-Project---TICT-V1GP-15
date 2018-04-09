@@ -53,7 +53,7 @@ struct wall_e_settings {
     float d_gain = 2.8;                         // Domain: unknown
     float p_gain = 0.295;                       // Domain: [0.275, 0.325]
     float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 30;                       // Domain: [10, 80]
+    int motor_power = 35;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
     bool exit = false;                          // Exit boolean to stop Wall-E
     string driving_mode = STOP;                 // Default driving mode
@@ -149,7 +149,7 @@ void dodge(int turn_drive, int degrees, int distance) {
 void scan_ultrasonic() {
     /// Returns ultrasonic value
     // TODO: maybe refactor this code.
-    while (true) {
+    while (!brain.exit) {
         BP.get_sensor(s_ultrasonic, sonic_struct);
         cout << sonic_struct.cm << endl;
         usleep(200000);
@@ -196,17 +196,6 @@ void measure_contrast() {
     }
     high_reflection = max_vector(tmp);
     low_reflection = min_vector(tmp);
-}
-
-
-void object_in_the_way() {
-    /// If a object is in the way of the PID it stops the PID.
-    sleep(1); //TODO: this is bad practice
-    while (true) {
-        if (sonic_struct.cm < limited_distance) {
-            brain.driving_mode = STOP;
-        }
-    }
 }
 
 void calibrate() {
@@ -258,8 +247,8 @@ void steer_right(int amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    thread turn (dodge(0, degrees, 0));
-    thread head_turn (turn_head(degrees));
+    dodge(0, degrees, 0);
+    turn_head(degrees);
 }
 
 int bound(float value, int begin, int end) {
@@ -306,7 +295,7 @@ bool is_white() {
 
 void drive() {
     /// Threaded function that applies certain drive mode.
-    while (true) {
+    while (!brain.exit) {
         if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
             usleep(250000);
             continue;
@@ -333,6 +322,7 @@ void drive() {
 void find_line() {
     brain.driving_mode = FREE;
     motor_power(20);
+    cout << "is_black(): " << is_black()  << endl;
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
@@ -354,6 +344,16 @@ int around_object() {
     find_line();
 }
 
+void object_in_the_way() {
+    /// If a object is in the way of the PID it stops the PID.
+    sleep(1); //TODO: this is bad practice
+    while (!brain.exit) {
+        if (sonic_struct.cm < limited_distance) {
+            brain.driving_mode = STOP;
+            around_object();
+        }
+    }
+}
 
 int main() {
     setup();
