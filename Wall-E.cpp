@@ -260,7 +260,7 @@ int no_object(int mode){
             }
         }
         if (to_object == false and object == true and end_of_object == true){
-               dodge(1, 0, 15);
+               dodge(1, 0, 20);
                to_object = true;
                 
         }
@@ -390,13 +390,14 @@ int around_object() {
     dodge(0, -90, 0);
     turn_head(90);
     dodge(1, 0, 20);
-    turn_head_body(90);
+    dodge(0, 90, 0);
     no_object(1);
-    dodge(0, 67.5, 0);
-    turn_head(-90);
+    dodge(0, 90, 0);
+    turn_head(0);
     sleep(0.5);
     find_line();
 }
+
 
 void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
