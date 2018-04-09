@@ -1,0 +1,9 @@
+10:00-16:30
+
+Afwezigen
+Quin vanaf 12:30
+
+Voortgang
+We zijn druk bezig geweest met code voor het ontwijken van 
+een object en met het kalibreren van PID. Ook zijn we bezig 
+geweest met het uitlezen van de kleurensensor voor het grid.

@@ -1,0 +1,9 @@
+10:00-16:30
+
+Afwezigen
+-
+
+Voortgang
+De robot kan door middel van gebruik van een PID nu 
+de lijn gecontroleerd volgen en we hebben vooruitgang 
+gemaakt met de overige sensoren.

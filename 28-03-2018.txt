@@ -1,0 +1,9 @@
+10:00-16:30
+
+Afwezigen
+-
+
+Voortgang
+We hebben de robot rijdend en zijn bezig geweest met uitzoeken
+hoe de sensoren werken. De robot kan rijden en draaien op
+commando via ssh.

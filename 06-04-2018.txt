@@ -1,0 +1,9 @@
+10:00-16:30
+
+Afwezigen
+Floris vanaf 12:30
+
+Voortgang
+We zijn bezig geweest met het registreren van kruisingen 
+en rode strepen en de functie voor het precies aansturen van 
+de motoren en wat tweaken aan de PID.

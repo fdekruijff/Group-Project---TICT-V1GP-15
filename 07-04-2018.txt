@@ -1,0 +1,9 @@
+10:00-16:30
+
+Afwezigen
+-
+
+Voortgang
+We hebben voor om het object heen rijden de eerste testen en 
+zijn verder gegaan met het registreren van kruisingen en rode
+strepen voor het grid.
