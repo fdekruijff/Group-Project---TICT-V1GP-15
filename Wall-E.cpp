@@ -4,8 +4,8 @@
 #include "./piprograms/BrickPi3.cpp"
 #include <thread>
 #include <signal.h>
-#include <vector>
 #include <iomanip>
+#include <vector>
 
 using namespace std;
 
@@ -49,13 +49,13 @@ struct wall_e_settings {
     float i_error = 0.0;                        // Value set by PID
     float set_point = 0.0;                      // Value set by sensor
     float last_time = 1.0;                      // Domain: unknown
-    float i_gain = 0.0;                         // Domain: unknown
-    float d_gain = 0.0;                         // Domain: unknown
-    float p_gain = 0.285;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 1050.0;     // Domain: [750, 1200]
-    int motor_power = 25;                       // Domain: [10, 80]
-    int pid_update_frequency_ms = 10500;        // Domain: [10000, 175000]
-    bool think = true;                          // Exit boolean to stop Wall-E
+    float i_gain = 0.01;                        // Domain: unknown
+    float d_gain = 2.8;                         // Domain: unknown
+    float p_gain = 0.295;                       // Domain: [0.275, 0.325]
+    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
+    int motor_power = 30;                       // Domain: [10, 80]
+    int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
+    bool exit = false;                          // Exit boolean to stop Wall-E
     string driving_mode = STOP;                 // Default driving mode
 };
 
@@ -87,11 +87,6 @@ void exit_signal_handler(int sig) {
         BP.reset_all();                         // Reset everything so there are no run-away motors
         exit(-2);
     }
-}
-
-void stand_still() {
-    BP.set_motor_power(m_right, 0);
-    BP.set_motor_power(m_left, 0);
 }
 
 void setup() {
@@ -143,14 +138,14 @@ void dodge(int turn_drive, int degrees, int distance) {
         usleep(76927 * distance);
         stop();
     }
-
 }
 
 void scan_ultrasonic() {
     /// Returns ultrasonic value
     // TODO: maybe refactor this code.
-    while (brain.think) {
+    while (true) {
         BP.get_sensor(s_ultrasonic, sonic_struct);
+        cout << sonic_struct.cm << endl;
         usleep(200000);
     }
 }
@@ -164,6 +159,7 @@ int16_t get_contrast() {
 
 int16_t max_vector(vector<int16_t> const vec) {
     /// Returns the highest integer value of a vector.
+    // TODO: fix  duplicate code here
     int16_t tmp = vec[0];
     for (unsigned int i = 0; i < vec.size(); i++) {
         if (vec[i] > tmp) {
@@ -175,6 +171,7 @@ int16_t max_vector(vector<int16_t> const vec) {
 
 int16_t min_vector(vector<int16_t> const vec) {
     /// Returns the lowest integer value of a vector.
+    // TODO: fix  duplicate code here
     int16_t tmp = 4000;
     for (unsigned int i = 0; i < vec.size(); i++) {
         if (vec[i] < tmp && vec[i] != 0) {
@@ -195,6 +192,17 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
+
+void object_in_the_way() {
+    /// If a object is in the way of the PID it stops the PID.
+    sleep(1); //TODO: this is bad practice
+    while (true) {
+        if (sonic_struct.cm < limited_distance) {
+            brain.driving_mode = STOP;
+        }
+    }
+}
+
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
@@ -210,10 +218,10 @@ void calibrate() {
     for (int i = 0; i < power_profile.size(); i++) {
         BP.set_motor_position_relative(m_right, power_profile[i][0]);
         BP.set_motor_position_relative(m_left, power_profile[i][1]);
-        usleep(450000);
+        usleep(650000);
     }
-    stand_still();
     calibrating = false;
+    stop();
     motor_power_limit(100);
     measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
@@ -221,15 +229,14 @@ void calibrate() {
          " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
 }
 
-int turn_head(int degrees) {
-    /// Turns head by set amount of degrees.
-    BP.set_motor_position(m_head, degrees);
+int turn_head(int degree) {
+    BP.set_motor_position(m_head, degree);
 }
 
 int no_object() {
     ///keeps on driving till there is no object.
     while (sonic_struct.cm < 20) {
-        dodge(1, 0, 1);
+        dodge(1, 0, 1) ;
     }
 }
 
@@ -245,8 +252,8 @@ void steer_right(int amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    dodge(0, degrees, 0);
-    turn_head(degrees);
+    thread turn (dodge(0, degrees, 0));
+    thread head_turn (turn_head(degrees));
 }
 
 int bound(float value, int begin, int end) {
@@ -293,7 +300,7 @@ bool is_white() {
 
 void drive() {
     /// Threaded function that applies certain drive mode.
-    while (brain.think) {
+    while (true) {
         if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
             usleep(250000);
             continue;
@@ -323,8 +330,10 @@ void find_line() {
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
+    stop();
     brain.driving_mode == LINE;
 }
+
 
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
@@ -333,26 +342,12 @@ int around_object() {
     dodge(1, 0, 10);
     no_object();
     dodge(1, 0, 10);
-    turn_head_body(90);
-    dodge(1, 0, 20);
-    turn_head(90);
-    dodge(1, 0, 10);
     no_object();
-    turn_head_body(90);
+    turn_head_body(90*-1);
+    sleep(0.5);
     find_line();
 }
 
-
-void object_in_the_way() {
-    /// If a object is in the way of the PID it stops the PID.
-    sleep(1); //TODO: this is bad practice
-    while (brain.think) {
-        if (sonic_struct.cm < limited_distance) {
-            brain.driving_mode = STOP;
-            around_object();
-        }
-    }
-}
 
 int main() {
     setup();
@@ -368,7 +363,7 @@ int main() {
     // Start driving thread
     thread init_drive(drive);
 
-    while (brain.think) {
+    while (brain.exit) {
         // Just a infinite loop to keep the threads
         usleep(500000);
     }
