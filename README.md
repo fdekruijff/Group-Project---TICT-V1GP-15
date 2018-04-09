@@ -42,6 +42,7 @@ Lorem Ipsum
 * [CLION](https://www.jetbrains.com/clion/) - C++ IDE for Professional Developers by JetBrains
 * [CodeLite](https://codelite.org/) - A Free, open source, cross platform C,C++,PHP and Node.js IDE
 * [Lego NXT](https://www.lego.com/mindstorms) - LEGO Mindstorms (Robotics Invention Systems) is een uitbreiding op de LEGO-bouwsteentjes.
+* [BrickPI](https://www.dexterindustries.com/brickpi/) - BrickPi3 The compute brain of Wall-E.
 
 ## Authors
 
