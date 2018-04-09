@@ -192,7 +192,7 @@ void measure_contrast() {
     vector<int16_t> tmp;
     while (calibrating) {
         tmp.push_back(get_contrast());
-        usleep(25000);
+        usleep(12500);
     }
     high_reflection = max_vector(tmp);
     low_reflection = min_vector(tmp);
@@ -284,7 +284,7 @@ float calculate_correction() {
 bool is_black() {
     /// Is sensor value in the black domain?
     float sensor = get_contrast();
-    return sensor > brain.set_point && sensor < high_reflection;
+    return sensor > (brain.set_point - 100) && sensor < high_reflection;
 }
 
 bool is_white() {
@@ -322,11 +322,12 @@ void drive() {
 void find_line() {
     brain.driving_mode = FREE;
     motor_power(20);
-    cout << "is_black(): " << is_black()  << endl;
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
     stop_driving();
+    cout << "Wall-E found the line again!, starting PID controller." << endl;
+    dodge(0, -90, 0);
     brain.driving_mode == LINE;
 }
 
@@ -358,15 +359,16 @@ void object_in_the_way() {
 int main() {
     setup();
     calibrate();
+    sleep(3);
 
     // Default driving mode after starting thread.
-    brain.driving_mode = LINE;
-
-    // Start sensor threads
-    thread scan_distance(scan_ultrasonic);
-    thread stop_object(object_in_the_way);
-
-    // Start driving thread
+//    brain.driving_mode = LINE;
+//
+//    // Start sensor threads
+//    thread scan_distance(scan_ultrasonic);
+//    thread stop_object(object_in_the_way);
+//
+//    // Start driving thread
     thread init_drive(drive);
 
     while (!brain.exit) {
