@@ -151,7 +151,6 @@ void scan_ultrasonic() {
     // TODO: maybe refactor this code.
     while (!brain.exit) {
         BP.get_sensor(s_ultrasonic, sonic_struct);
-        cout << sonic_struct.cm << endl;
         usleep(200000);
     }
 }
@@ -238,15 +237,12 @@ int no_object(int mode){
             dodge(1, 0, 1) ;
             if (sonic_struct.cm < 20){
                 object = true; 
-                cout << "object begint";
             }
         }
         if (to_object == false and object == true and end_of_object == false){
             dodge(1, 0, 1) ;
-            cout << "object is er";
             if (sonic_struct.cm > 30){
                 end_of_object = true;
-                cout << "object is afgelopen";
             }
         }
         if (to_object == false and object == true and end_of_object == true){
