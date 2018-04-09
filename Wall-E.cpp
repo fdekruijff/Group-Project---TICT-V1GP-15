@@ -302,16 +302,21 @@ void drive() {
         }
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
-            auto comp = int(calc_compensation(brain.last_error));
+//            auto comp = int(calc_compensation(brain.last_error));
+            auto comp = 0;
+            if (brain.last_error > 100) {
+                brain.motor_power * (1/3);
+            }
             int lower_limit = (-100 + comp);
             int higher_limit = (100 - comp);
+            int left = bound(brain.motor_power - output, lower_limit, higher_limit);
+            int right = bound(brain.motor_power+ output, lower_limit, higher_limit);
 
-            steer_left(bound(brain.motor_power - output, lower_limit, higher_limit));
-            steer_right(bound(brain.motor_power+ output, lower_limit, higher_limit));
+            steer_left(left);
+            steer_right(right);
             usleep(brain.pid_update_frequency_ms);
 
-            cout << setw(7) << "error: " << setw(5) << brain.last_error << setw(7) << "comp: " << setw(5) << comp
-                 << setw(7) << "left: " << setw(5) << left << setw(7) << "right: " << setw(5) << right << endl;
+            cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right << " low: " << lower_limit << " high: " << higher_limit << endl;
         }
         if (brain.driving_mode == GRID) {
             // TODO: implement GRID driving code here.
@@ -359,10 +364,9 @@ void object_in_the_way() {
 int main() {
     setup();
     calibrate();
-    sleep(3);
 
     // Default driving mode after starting thread.
-//    brain.driving_mode = LINE;
+    brain.driving_mode = LINE;
 //
 //    // Start sensor threads
 //    thread scan_distance(scan_ultrasonic);

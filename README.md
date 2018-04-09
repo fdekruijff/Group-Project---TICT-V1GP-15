@@ -20,11 +20,11 @@ Wall-E is het begin van iets groots, een robot van de toekomst, hij kan een voor
   
  | Branch  | Beschrijving |
  | ------------- | ------------- |
- | `master`  | Master branch met laatste versies  |
- | `release`  | Bevat versie geschiedenis van Wall-E  |
- | `develop`  | Nieuwe functionaliteiten worden hier ontwikkeld  |
- | `diverse-topic`  | Verschillende off-topic functionaliteiten worden hier ontwikkeld en getest  |
- | `proceedings`  | Bevat geschiedenis aan team vergaderingen en voortgangsgesprekken  |
+ | [`master`](https://github.com/fdekruijff/Group-Project-TICT-V1GP-15/tree/master)  | Master branch met laatste versies  |
+ | [`release`](https://github.com/fdekruijff/Group-Project-TICT-V1GP-15/tree/Release)  | Bevat versie geschiedenis van Wall-E  |
+ | [`develop`](https://github.com/fdekruijff/Group-Project-TICT-V1GP-15/tree/Release)  | Nieuwe functionaliteiten worden hier ontwikkeld  |
+ | [`diverse-topic`](https://github.com/fdekruijff/Group-Project-TICT-V1GP-15/tree/Diverse-Topic)  | Verschillende off-topic functionaliteiten worden hier ontwikkeld en getest  |
+ | [`proceedings`](https://github.com/fdekruijff/Group-Project-TICT-V1GP-15/tree/Proceedings)  | Bevat geschiedenis aan team vergaderingen en voortgangsgesprekken  |
 
 ##  Bestand Structuur
 ```
