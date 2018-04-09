@@ -165,7 +165,6 @@ void scan_ultrasonic() {
     // TODO: maybe refactor this code.
     while (!brain.exit) {
         BP.get_sensor(s_ultrasonic, sonic_struct);
-        cout << sonic_struct.cm << endl;
         usleep(200000);
     }
 }
@@ -242,12 +241,32 @@ int turn_head(int degree) {
     BP.set_motor_position(m_head, degree);
 }
 
-int no_object() {
+int no_object(int mode){
     ///keeps on driving till there is no object.
-    while (sonic_struct.cm < 20) {
-        dodge(1, 0, 1);
+    bool to_object = false;
+    bool object = false;
+    bool end_of_object  = false;
+    while (!to_object) {
+        if (to_object == false and object == false and end_of_object == false){
+            dodge(1, 0, 1) ;
+            if (sonic_struct.cm < 20){
+                object = true; 
+            }
+        }
+        if (to_object == false and object == true and end_of_object == false){
+            dodge(1, 0, 1) ;
+            if (sonic_struct.cm > 30){
+                end_of_object = true;
+            }
+        }
+        if (to_object == false and object == true and end_of_object == true){
+               dodge(1, 0, 15);
+               to_object = true;
+                
+        }
     }
 }
+
 
 void steer_left(int amount) {
     /// Steer left motor.
@@ -370,11 +389,11 @@ int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
     dodge(0, -90, 0);
     turn_head(90);
-    dodge(1, 0, 10);
-    no_object();
-    dodge(1, 0, 10);
-    no_object();
-    turn_head_body(90 * -1);
+    dodge(1, 0, 20);
+    turn_head_body(90);
+    no_object(1);
+    dodge(0, 67.5, 0);
+    turn_head(-90);
     sleep(0.5);
     find_line();
 }
