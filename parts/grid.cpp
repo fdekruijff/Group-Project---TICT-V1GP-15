@@ -280,9 +280,9 @@ bool colour_is_black()
 	float red_sensor = Colour_struct.reflected_red;
 	float blue_sensor = Colour_struct.reflected_blue;
 	float green_sensor = Colour_struct.reflected_green;
-	return (red_sensor > colour_set_point[0] && red_sensor < red_high_reflection) &&
-			(blue_sensor > colour_set_point[1] && blue_sensor < blue_high_reflection) &&
-			(green_sensor > colour_set_point[2] && green_sensor < green_high_reflection);
+	return (red_sensor < colour_set_point[0] && red_sensor < red_high_reflection) &&
+			(blue_sensor < colour_set_point[1] && blue_sensor < blue_high_reflection) &&
+			(green_sensor < colour_set_point[2] && green_sensor < green_high_reflection);
 }
 
 void drive() {
@@ -390,8 +390,8 @@ int main() {
 		if(intersection() == true)
 		{
 			cout << "found intersection" << endl;
-//			brain.driving_mode = STOP;
-//			stop();
+			brain.driving_mode = STOP;
+			stop();
 		}
 		usleep(100000);
 	}
