@@ -33,10 +33,14 @@ int16_t high_reflection = 0;                    // Black
 int16_t low_reflection = 0;                     // White
 
 /// Driving modes variable declaration
-const string LINE = "LINE";
-const string STOP = "STOP";
-const string GRID = "GRID";
-const string FREE = "FREE";
+const string LINE = "DRIVE_MODE_LINE";
+const string STOP = "DRIVE_MODE_STOP";
+const string GRID = "DRIVE_MODE_GRID";
+const string FREE = "DRIVE_MODE_FREE";
+const string UP = "DIRECTION_UP";
+const string DOWNN = "DIRECTION_DOWN";
+const string LEFT = "DIRECTION_LEFT";
+const string RIGHT = "DIRECTION_RIGHT";
 
 /// Thread declaration
 thread scan_distance;
@@ -55,8 +59,18 @@ struct wall_e_settings {
     float compensation_multiplier = 950.0;      // Domain: [750, 1200]
     int motor_power = 35;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
+    int max_x = 5;                              // GRID, max x value
+    int max_y = 3;                              //  GRID, max y value
     bool exit = false;                          // Exit boolean to stop Wall-E
     string driving_mode = STOP;                 // Default driving mode
+    string driving_direction = RIGHT;           // Driving direction on GRID as seen from below the coordinate system
+    vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
+    vector<int> last_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
+    vector<vector<int>> grid = {                // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
+            {0, 0, 0, 0, 0, 0},
+            {0, 0, 1, 1, 3, 0},
+            {0, 2, 2, 2, 1, 0},
+            {4, 2, 2, 1, 0, 0}};
 };
 
 ///  Declare the brain!
@@ -231,7 +245,7 @@ int turn_head(int degree) {
 int no_object() {
     ///keeps on driving till there is no object.
     while (sonic_struct.cm < 20) {
-        dodge(1, 0, 1) ;
+        dodge(1, 0, 1);
     }
 }
 
@@ -293,6 +307,8 @@ bool is_white() {
     return sensor < high_reflection && sensor > brain.set_point;
 }
 
+bool intersection();
+
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (!brain.exit) {
@@ -301,25 +317,38 @@ void drive() {
             continue;
         }
         if (brain.driving_mode == LINE) {
+            /// Follows line by sending corrections to motors according to calculated error
             float output = calculate_correction();
+
+            // TODO: work with the compensation
 //            auto comp = int(calc_compensation(brain.last_error));
             auto comp = 0;
             if (brain.last_error > 100) {
-                brain.motor_power * (1/3);
+                brain.motor_power * (1 / 4);
             }
             int lower_limit = (-100 + comp);
             int higher_limit = (100 - comp);
             int left = bound(brain.motor_power - output, lower_limit, higher_limit);
-            int right = bound(brain.motor_power+ output, lower_limit, higher_limit);
+            int right = bound(brain.motor_power + output, lower_limit, higher_limit);
 
             steer_left(left);
             steer_right(right);
             usleep(brain.pid_update_frequency_ms);
 
-            cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right << " low: " << lower_limit << " high: " << higher_limit << endl;
+            cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right
+                 << " low: " << lower_limit << " high: " << higher_limit << endl;
         }
         if (brain.driving_mode == GRID) {
-            // TODO: implement GRID driving code here.
+            /// Drives the grid based on intersections and LINE drive mode
+            // RIGHT == x+1     UP    == y+1
+            // LEFT  == x-1     DOWN  == y-1
+
+            while (!intersection()) {
+
+            }
+            // Intersection has been found
+            
+
         }
     }
 }
@@ -333,7 +362,7 @@ void find_line() {
     stop_driving();
     cout << "Wall-E found the line again!, starting PID controller." << endl;
     dodge(0, -90, 0);
-    brain.driving_mode == LINE;
+    brain.driving_mode = LINE;
 }
 
 
@@ -345,7 +374,7 @@ int around_object() {
     no_object();
     dodge(1, 0, 10);
     no_object();
-    turn_head_body(90*-1);
+    turn_head_body(90 * -1);
     sleep(0.5);
     find_line();
 }
@@ -361,18 +390,45 @@ void object_in_the_way() {
     }
 }
 
+void set_drive_mode() {
+    string mode = "STOP";
+    cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
+    cin >> mode;
+    brain.driving_mode = mode;
+    cout << endl;
+}
+
+void set_grid_destination() {
+    int x = 0, y = 0;
+    bool deciding = true;
+    while (deciding) {
+        cout << "Enter destination coordinates as integers divided by a space: ";
+        cin >> x >> y;
+        if (x <= brain.max_x || x >= 0 || y <= brain.max_y || y >= 0) {
+            deciding = false;
+        }
+        cout << endl;
+    }
+    brain.grid[x][y] = 2;
+}
+
 int main() {
     setup();
     calibrate();
 
-    // Default driving mode after starting thread.
-    brain.driving_mode = LINE;
-//
-//    // Start sensor threads
-//    thread scan_distance(scan_ultrasonic);
-//    thread stop_object(object_in_the_way);
-//
-//    // Start driving thread
+    // Set driving mode based on user input
+    string drive_mode = "STOP";
+    set_drive_mode();
+
+    if (brain.driving_mode == GRID) {
+        set_grid_destination();
+    }
+
+    // Start sensor threads
+    thread scan_distance(scan_ultrasonic);
+    thread stop_object(object_in_the_way);
+
+    // Start driving thread
     thread init_drive(drive);
 
     while (!brain.exit) {
