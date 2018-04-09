@@ -198,17 +198,6 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
-
-void object_in_the_way() {
-    /// If a object is in the way of the PID it stops the PID.
-    sleep(1); //TODO: this is bad practice
-    while (true) {
-        if (sonic_struct.cm < limited_distance) {
-            brain.driving_mode = STOP;
-        }
-    }
-}
-
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
@@ -258,8 +247,8 @@ void steer_right(int amount) {
 
 void turn_head_body(int degrees) {
     ///turns head and body at the same time in threads.
-    thread turn (dodge(0, degrees, 0));
-    thread head_turn (turn_head(degrees));
+    dodge(0, degrees, 0);
+    turn_head(degrees);
 }
 
 int bound(float value, int begin, int end) {
@@ -354,6 +343,16 @@ int around_object() {
     find_line();
 }
 
+void object_in_the_way() {
+    /// If a object is in the way of the PID it stops the PID.
+    sleep(1); //TODO: this is bad practice
+    while (true) {
+        if (sonic_struct.cm < limited_distance) {
+            brain.driving_mode = STOP;
+            around_object();
+        }
+    }
+}
 
 int main() {
     setup();
