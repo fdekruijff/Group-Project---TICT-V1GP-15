@@ -80,6 +80,12 @@ void stop() {
     }
 }
 
+void stop_driving() {
+    /// Stops driving Wall-E and exit the threads.
+    BP.set_motor_power(m_right, 0);
+    BP.set_motor_power(m_left, 0);
+}
+
 void exit_signal_handler(int sig) {
     /// Control-C handler that resets Brick Pi and exits application.
     if (sig == SIGINT) {
@@ -125,7 +131,7 @@ void dodge(int turn_drive, int degrees, int distance) {
         BP.set_motor_power(m_left, power);
         BP.set_motor_power(m_right, power * -1);
         usleep(100000 * degrees);
-        stop();
+        stop_driving();
 
         //drive
     } else if (turn_drive == 1) {
@@ -136,7 +142,7 @@ void dodge(int turn_drive, int degrees, int distance) {
         BP.set_motor_power(m_left, power);
         BP.set_motor_power(m_right, power);
         usleep(76927 * distance);
-        stop();
+        stop_driving();
     }
 }
 
@@ -221,7 +227,7 @@ void calibrate() {
         usleep(650000);
     }
     calibrating = false;
-    stop();
+    stop_driving();
     motor_power_limit(100);
     measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
@@ -330,7 +336,7 @@ void find_line() {
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
-    stop();
+    stop_driving();
     brain.driving_mode == LINE;
 }
 
@@ -363,8 +369,8 @@ int main() {
     // Start driving thread
     thread init_drive(drive);
 
-    while (brain.exit) {
-        // Just a infinite loop to keep the threads
+    while (!brain.exit) {
+        // Just a infinite loop to keep the threads running
         usleep(500000);
     }
     stop();
