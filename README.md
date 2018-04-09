@@ -6,7 +6,9 @@ Lorem Ipsum
 
 WALL-E (een afkorting voor "Waste Allocation Load Lifter Earth-class" is gelijknamig zelfbewust robotje dat afval samenperst op een verder door alles en iedereen verlaten Aarde. De mens is van de planeet gevlucht omdat deze te veel vervuild raakte en onleefbaar werd.   
 
-![Wall-E](https://cdn0.iconfinder.com/data/icons/Wall_E_by_Noctuline/512/Wall.E.png)
+<p align="center">
+<img src="https://cdn0.iconfinder.com/data/icons/Wall_E_by_Noctuline/512/Wall.E.png">
+</p>
 
 ### Wat kan Wall-E
 
@@ -46,7 +48,7 @@ Lorem Ipsum
 
 ## Authors
 
-* **Bryan Campagne** - [Joepieler](ttps://github.com/Joepieler)
+* **Bryan Campagne** - [Joepieler](https://github.com/Joepieler)
 * **Floris de Kruijff** - [fdekruijff](https://github.com/fdekruijff)
 * **Esmée Blom**  - [EsmeeBlom](https://github.com/EsmeeBlom)
 * **Quin Ligteringen** - [QuinLigteringen](https://github.com/QuinLigteringen)
