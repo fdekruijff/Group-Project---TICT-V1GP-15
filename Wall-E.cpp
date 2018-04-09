@@ -75,7 +75,7 @@ void stop() {
     if (stop_object.joinable()) {
         stop_object.join();
     }
-    if (init_drive.joinable())  {
+    if (init_drive.joinable()) {
         init_drive.join();
     }
 }
@@ -115,32 +115,32 @@ void motor_power_limit(int power) {
     BP.set_motor_limits(m_right, uint8_t(power), 0);
 }
 
-void dodge(int turn_drive, int degrees, int distance){
+void dodge(int turn_drive, int degrees, int distance) {
     //Makes Wall-E turn and drive straight
-    int power =40;
+    int power = 40;
     degrees /= 5.625; //360 conversion to 64
 
     //turn
-    if(turn_drive== 0){
-        if(degrees < 0){
+    if (turn_drive == 0) {
+        if (degrees < 0) {
             degrees *= -1;
             power *= -1;
         }
 
         BP.set_motor_power(m_left, power);
-        BP.set_motor_power(m_right, power*-1);
-        usleep(100000*degrees);
+        BP.set_motor_power(m_right, power * -1);
+        usleep(100000 * degrees);
         stop();
 
         //drive
-    }else if(turn_drive==1){
-        if(distance < 0){
+    } else if (turn_drive == 1) {
+        if (distance < 0) {
             distance *= -1;
             power *= -1;
         }
         BP.set_motor_power(m_left, power);
         BP.set_motor_power(m_right, power);
-        usleep(76927*distance);
+        usleep(76927 * distance);
         stop();
     }
 
@@ -233,14 +233,14 @@ int no_object() {
     }
 }
 
-void steer_left(uint8_t amount) {
+void steer_left(int amount) {
     /// Steer left motor.
-    BP.set_motor_power(m_left, amount);
+    BP.set_motor_power(m_left, uint8_t(amount));
 }
 
-void steer_right(uint8_t amount) {
+void steer_right(int amount) {
     /// Steer right motor.
-    BP.set_motor_power(m_right, amount);
+    BP.set_motor_power(m_right, uint8_t(amount));
 }
 
 void turn_head_body(int degrees) {
@@ -249,11 +249,11 @@ void turn_head_body(int degrees) {
     turn_head(degrees);
 }
 
-float bound(float value, float begin, float end) {
+int bound(float value, int begin, int end) {
     /// Cap value between begin and end range. Used to keep PID motor values in boundaries.
     if (value < begin) return begin;
     if (value > end) return end;
-    return value;
+    return int(value);
 }
 
 float calc_compensation(float x) {
@@ -300,13 +300,16 @@ void drive() {
         }
         if (brain.driving_mode == LINE) {
             float output = calculate_correction();
-            float comp = calc_compensation(brain.last_error);
+            auto comp = int(calc_compensation(brain.last_error));
+            int lower_limit = (-100 + comp);
+            int higher_limit = (100 - comp);
 
-            cout << setw(7) << "error: " << setw(5) << brain.last_error << setw(7) << "comp: " << setw(5) << comp << setw(7) << "left: " << setw(5) << left << setw(7) << "right: " << setw(5) << right << endl;
-
-            steer_left(uint8_t(int(bound(brain.motor_power - comp - output, -100, 100))));
-            steer_right(uint8_t(int(bound(brain.motor_power - comp + output, -100, 100))));
+            steer_left(bound(brain.motor_power - output, lower_limit, higher_limit));
+            steer_right(bound(brain.motor_power+ output, lower_limit, higher_limit));
             usleep(brain.pid_update_frequency_ms);
+
+            cout << setw(7) << "error: " << setw(5) << brain.last_error << setw(7) << "comp: " << setw(5) << comp
+                 << setw(7) << "left: " << setw(5) << left << setw(7) << "right: " << setw(5) << right << endl;
         }
         if (brain.driving_mode == GRID) {
             // TODO: implement GRID driving code here.
@@ -327,13 +330,13 @@ int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
     dodge(0, -90, 0);
     turn_head(90);
-    dodge(1, 0, 10)
+    dodge(1, 0, 10);
     no_object();
     dodge(1, 0, 10);
     turn_head_body(90);
     dodge(1, 0, 20);
     turn_head(90);
-    dodge(1, 0, 10)
+    dodge(1, 0, 10);
     no_object();
     turn_head_body(90);
     find_line();
