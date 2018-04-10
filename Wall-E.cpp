@@ -49,29 +49,24 @@ thread init_drive;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
-    float last_error = 0.0;                     // Value set by PID
-    float i_error = 0.0;                        // Value set by PID
-    float set_point = 0.0;                      // Value set by sensor
-    float last_time = 1.0;                      // Domain: unknown
-    float i_gain = 0.01;                        // Domain: unknown
-    float d_gain = 2.8;                         // Domain: unknown
-    float p_gain = 0.295;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 35;                       // Domain: [10, 80]
-    int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
-    int max_x = 5;                              // GRID, max x value
-    int max_y = 3;                              //  GRID, max y value
-    bool exit = false;                          // Exit boolean to stop Wall-E
-    string driving_mode = STOP;                 // Default driving mode
-    string driving_direction = RIGHT;           // Driving direction on GRID as seen from below the coordinate system
-    vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
-    vector<int> last_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
-    vector<vector<int>> grid = {                // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
-            {0, 0, 0, 0, 0, 0},
-            {0, 0, 1, 1, 3, 0},
-            {0, 2, 2, 2, 1, 0},
-            {4, 2, 2, 1, 0, 0}};
-};
+    auto last_error = 0.0;                     // Value set by PID
+    auto i_error = 0.0;                        // Value set by PID
+    auto set_point = 0.0;                      // Value set by sensor
+    auto last_time = 1.0;                      // Domain: unknown
+    auto i_gain = 0.01;                        // Domain: unknown
+    auto d_gain = 2.8;                         // Domain: unknown
+    auto p_gain = 0.295;                       // Domain: [0.275, 0.325]
+    auto compensation_multiplier = 950.0;      // Domain: [750, 1200]
+    auto motor_power = 35;                     // Domain: [10, 80]
+    auto pid_update_frequency_ms = 11000;      // Domain: [10000, 175000]
+    auto max_x = 5;                            // GRID, max x value
+    auto max_y = 3;                            //  GRID, max y value
+    auto exit = false;                         // Exit boolean to stop Wall-E
+    auto driving_mode = STOP;                  // Default driving mode
+    auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
+    vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
+    vector<int> last_coordinates = {0, 0};     // Current position of Wall-E on the GRID.
+    vector<vector<int>> grid;               // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
 
 ///  Declare the brain!
 wall_e_settings brain;
@@ -241,28 +236,28 @@ int turn_head(int degree) {
     BP.set_motor_position(m_head, degree);
 }
 
-int no_object(int mode){
+int no_object(int mode) {
     ///keeps on driving till there is no object.
     bool to_object = false;
     bool object = false;
-    bool end_of_object  = false;
+    bool end_of_object = false;
     while (!to_object) {
-        if (to_object == false and object == false and end_of_object == false){
-            dodge(1, 0, 1) ;
-            if (sonic_struct.cm < 20){
-                object = true; 
+        if (to_object == false and object == false and end_of_object == false) {
+            dodge(1, 0, 1);
+            if (sonic_struct.cm < 20) {
+                object = true;
             }
         }
-        if (to_object == false and object == true and end_of_object == false){
-            dodge(1, 0, 1) ;
-            if (sonic_struct.cm > 30){
+        if (to_object == false and object == true and end_of_object == false) {
+            dodge(1, 0, 1);
+            if (sonic_struct.cm > 30) {
                 end_of_object = true;
             }
         }
-        if (to_object == false and object == true and end_of_object == true){
-               dodge(1, 0, 15);
-               to_object = true;
-                
+        if (to_object == false and object == true and end_of_object == true) {
+            dodge(1, 0, 15);
+            to_object = true;
+
         }
     }
 }
@@ -366,7 +361,7 @@ void drive() {
 
             }
             // Intersection has been found
-            
+
 
         }
     }
@@ -392,7 +387,7 @@ int around_object() {
     dodge(1, 0, 20);
     turn_head_body(90);
     no_object(1);
-    dodge(0, 67.5, 0);
+    dodge(0, 67, 0);
     turn_head(-90);
     sleep(0.5);
     find_line();
@@ -417,12 +412,23 @@ void set_drive_mode() {
     cout << endl;
 }
 
-void set_grid_destination() {
+void set_grid_parameters() {
     int x = 0, y = 0;
+    cout << "Enter desired grid size as integers divided by a spece (x y): ";
+    cin >> x >> y;
+
+    for (unsigned int i = 0; i <= x; i++) {
+        vector<int> tmp;
+        for (unsigned int j = 0; j <= y; j++) {
+           tmp.push_back(0);
+        }
+        brain.grid.push_back(tmp);
+    }
+
     bool deciding = true;
     while (deciding) {
-        cout << "Enter destination coordinates as integers divided by a space: ";
-        cin >> x >> y;
+        cout << "Enter destination coordinates as integers divided by a space (x y): ";
+
         if (x <= brain.max_x || x >= 0 || y <= brain.max_y || y >= 0) {
             deciding = false;
         }
@@ -440,7 +446,7 @@ int main() {
     set_drive_mode();
 
     if (brain.driving_mode == GRID) {
-        set_grid_destination();
+        set_grid_parameters();
     }
 
     // Start sensor threads
