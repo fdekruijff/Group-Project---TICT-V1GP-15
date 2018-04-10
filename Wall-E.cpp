@@ -33,14 +33,14 @@ bool calibrating = false;
 int16_t high_reflection = 0;                    // Black
 int16_t low_reflection = 0;                     // White
 
-int16_t red_high_reflection = 0;				// much Red
-int16_t red_low_reflection = 0;					// little Red
-int16_t blue_high_reflection = 0;				// much blue
-int16_t blue_low_reflection = 0;				// little blue
-int16_t green_high_reflection = 0;				// much green
-int16_t green_low_reflection = 0;				// little green
+int16_t red_high_reflection = 0;                // much Red
+int16_t red_low_reflection = 0;                    // little Red
+int16_t blue_high_reflection = 0;                // much blue
+int16_t blue_low_reflection = 0;                // little blue
+int16_t green_high_reflection = 0;                // much green
+int16_t green_low_reflection = 0;                // little green
 
-vector<int> color_set_point = {0,0,0}; 
+vector<int> color_set_point = {0, 0, 0};
 
 /// Driving modes variable declaration
 const string LINE = "DRIVE_MODE_LINE";
@@ -59,28 +59,24 @@ thread init_drive;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
-    float last_error = 0.0;                     // Value set by PID
-    float i_error = 0.0;                        // Value set by PID
-    float set_point = 0.0;                      // Value set by sensor
-    float last_time = 1.0;                      // Domain: unknown
-    float i_gain = 0.01;                        // Domain: unknown
-    float d_gain = 2.8;                         // Domain: unknown
-    float p_gain = 0.295;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 35;                       // Domain: [10, 80]
-    int pid_update_frequency_ms = 11000;        // Domain: [10000, 175000]
-    int max_x = 5;                              // GRID, max x value
-    int max_y = 3;                              //  GRID, max y value
-    bool exit = false;                          // Exit boolean to stop Wall-E
-    string driving_mode = STOP;                 // Default driving mode
-    string driving_direction = RIGHT;           // Driving direction on GRID as seen from below the coordinate system
-    vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
-    vector<int> last_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
-    vector<vector<int>> grid = {                // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
-            {0, 0, 0, 0, 0, 0},
-            {0, 0, 1, 1, 3, 0},
-            {0, 2, 2, 2, 1, 0},
-            {4, 2, 2, 1, 0, 0}};
+    auto last_error = 0.0;                     // Value set by PID
+    auto i_error = 0.0;                        // Value set by PID
+    auto set_point = 0.0;                      // Value set by sensor
+    auto last_time = 1.0;                      // Domain: unknown
+    auto i_gain = 0.01;                        // Domain: unknown
+    auto d_gain = 2.8;                         // Domain: unknown
+    auto p_gain = 0.295;                       // Domain: [0.275, 0.325]
+    auto compensation_multiplier = 950.0;      // Domain: [750, 1200]
+    auto motor_power = 35;                     // Domain: [10, 80]
+    auto pid_update_frequency_ms = 11000;      // Domain: [10000, 175000]
+    auto max_x = 5;                            // GRID, max x value
+    auto max_y = 3;                            //  GRID, max y value
+    auto exit = false;                         // Exit boolean to stop Wall-E
+    auto driving_mode = STOP;                  // Default driving mode
+    auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
+    vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
+    vector<int> last_coordinates = {0, 0};     // Current position of Wall-E on the GRID.
+    vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
 };
 
 ///  Declare the brain!
@@ -221,34 +217,32 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
-void measure_color_contrast()
-{
+void measure_color_contrast() {
     /// Thread function that reads color sensor values and calculates maximum and minimum from local vector.
     vector<int16_t> red_tmp;
-	vector<int16_t> blue_tmp;
-	vector<int16_t> green_tmp;
-	
-    while (calibrating)
-	{
-		BP.get_sensor(s_color, color_struct);
-		red_tmp.push_back(color_struct.reflected_red);
+    vector<int16_t> blue_tmp;
+    vector<int16_t> green_tmp;
+
+    while (calibrating) {
+        BP.get_sensor(s_color, color_struct);
+        red_tmp.push_back(color_struct.reflected_red);
         blue_tmp.push_back(color_struct.reflected_blue);
-		green_tmp.push_back(color_struct.reflected_green);
+        green_tmp.push_back(color_struct.reflected_green);
         usleep(25000);
     }
     red_high_reflection = max_vector(red_tmp);
     red_low_reflection = min_vector(red_tmp);
-	blue_high_reflection = max_vector(blue_tmp);
-	blue_low_reflection = min_vector(blue_tmp);
-	green_high_reflection = max_vector(green_tmp);
-	green_low_reflection = min_vector(green_tmp);
+    blue_high_reflection = max_vector(blue_tmp);
+    blue_low_reflection = min_vector(blue_tmp);
+    green_high_reflection = max_vector(green_tmp);
+    green_low_reflection = min_vector(green_tmp);
 }
 
 void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
     thread measure(measure_contrast);
-	thread color_measure(measure_color_contrast);
+    thread color_measure(measure_color_contrast);
     int turn = 180;
     vector<vector<int>> power_profile = {
             {turn,  -turn},
@@ -266,44 +260,43 @@ void calibrate() {
     stop_driving();
     motor_power_limit(100);
     measure.join();
-	color_measure.join();
+    color_measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
-	color_set_point[0] = (red_high_reflection + red_low_reflection) / 2;
-	color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
-	color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
+    color_set_point[0] = (red_high_reflection + red_low_reflection) / 2;
+    color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
+    color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
     cout << "Calibration finished." << endl <<
          " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
-	cout << "Red_high:   " << red_high_reflection << " Red_low:   " << red_low_reflection << endl << 
-	"Blue_high:  " << blue_high_reflection << " Blue_low:  " << blue_low_reflection << endl << 
-	"Green_high: " << green_high_reflection << " Green_low: " << green_low_reflection << endl;
+    cout << "Red_high:   " << red_high_reflection << " Red_low:   " << red_low_reflection << endl <<
+         "Blue_high:  " << blue_high_reflection << " Blue_low:  " << blue_low_reflection << endl <<
+         "Green_high: " << green_high_reflection << " Green_low: " << green_low_reflection << endl;
 }
 
 int turn_head(int degree) {
     BP.set_motor_position(m_head, degree);
 }
 
-int no_object(int mode){
+int no_object(int mode) {
     ///keeps on driving till there is no object.
     bool to_object = false;
     bool object = false;
-    bool end_of_object  = false;
+    bool end_of_object = false;
     while (!to_object) {
-        if (to_object == false and object == false and end_of_object == false){
-            dodge(1, 0, 1) ;
-            if (sonic_struct.cm < 20){
-                object = true; 
+        if (to_object == false and object == false and end_of_object == false) {
+            dodge(1, 0, 1);
+            if (sonic_struct.cm < 20) {
+                object = true;
             }
         }
-        if (to_object == false and object == true and end_of_object == false){
-            dodge(1, 0, 1) ;
-            if (sonic_struct.cm > 30){
+        if (to_object == false and object == true and end_of_object == false) {
+            dodge(1, 0, 1);
+            if (sonic_struct.cm > 30) {
                 end_of_object = true;
             }
         }
-        if (to_object == false and object == true and end_of_object == true){
-               dodge(1, 0, 20);
-               to_object = true;
-                
+        if (to_object == false and object == true and end_of_object == true) {
+            dodge(1, 0, 20);
+            to_object = true;
         }
     }
 }
@@ -357,14 +350,13 @@ float calculate_correction() {
 void find_color_values()
 // uses the color sensor to return the color values to use them for calibation.
 {
-	while(true)
-	{
-		BP.get_sensor(s_contrast, contrast_struct);
-		BP.get_sensor(s_color, color_struct);
-		cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red << 
-			"  green: " << color_struct.reflected_green << "  blue: " << color_struct.reflected_blue << endl;
-		usleep(100000);
-	}
+    while (true) {
+        BP.get_sensor(s_contrast, contrast_struct);
+        BP.get_sensor(s_color, color_struct);
+        cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red <<
+             "  green: " << color_struct.reflected_green << "  blue: " << color_struct.reflected_blue << endl;
+        usleep(100000);
+    }
 }
 
 bool is_black() {
@@ -380,20 +372,19 @@ bool is_white() {
 }
 
 bool color_is_black()
-	/// Is color sensor value in the black domain?
+/// Is color sensor value in the black domain?
 {
-	float red_sensor = color_struct.reflected_red;
-	float blue_sensor = color_struct.reflected_blue;
-	float green_sensor = color_struct.reflected_green;
-	return (red_sensor < color_set_point[0] && red_sensor < red_high_reflection) &&
-			(blue_sensor < color_set_point[1] && blue_sensor < blue_high_reflection) &&
-			(green_sensor < color_set_point[2] && green_sensor < green_high_reflection);
+    float red_sensor = color_struct.reflected_red;
+    float blue_sensor = color_struct.reflected_blue;
+    float green_sensor = color_struct.reflected_green;
+    return (red_sensor < color_set_point[0] && red_sensor < red_high_reflection) &&
+           (blue_sensor < color_set_point[1] && blue_sensor < blue_high_reflection) &&
+           (green_sensor < color_set_point[2] && green_sensor < green_high_reflection);
 }
 
-bool intersection()
-{
+bool intersection() {
 
-	return is_black() && color_is_black();
+    return is_black() && color_is_black();
 }
 
 void drive() {
@@ -434,7 +425,7 @@ void drive() {
 
             }
             // Intersection has been found
-            
+
 
         }
     }
@@ -486,12 +477,23 @@ void set_drive_mode() {
     cout << endl;
 }
 
-void set_grid_destination() {
+void set_grid_parameters() {
     int x = 0, y = 0;
+    cout << "Enter desired grid size as integers divided by a spece (x y): ";
+    cin >> x >> y;
+
+    for (unsigned int i = 0; i <= x; i++) {
+        vector<int> tmp;
+        for (unsigned int j = 0; j <= y; j++) {
+            tmp.push_back(0);
+        }
+        brain.grid.push_back(tmp);
+    }
+
     bool deciding = true;
     while (deciding) {
-        cout << "Enter destination coordinates as integers divided by a space: ";
-        cin >> x >> y;
+        cout << "Enter destination coordinates as integers divided by a space (x y): ";
+
         if (x <= brain.max_x || x >= 0 || y <= brain.max_y || y >= 0) {
             deciding = false;
         }
@@ -509,28 +511,16 @@ int main() {
     set_drive_mode();
 
     if (brain.driving_mode == GRID) {
-        set_grid_destination();
+        set_grid_parameters();
     }
 
     // Start sensor threads
     thread scan_distance(scan_ultrasonic);
     thread stop_object(object_in_the_way);
+    thread scan_color_values(find_color_values);
 
     // Start driving thread
     thread init_drive(drive);
-	
-	// Start intersection thread
-	thread scan_color_values(find_color_values);
-	while(true)
-	{
-		if(intersection() == true)
-		{
-			cout << "found intersection" << endl;
-			brain.driving_mode = STOP;
-			stop();
-		}
-		usleep(100000);
-	}
 
     while (!brain.exit) {
         // Just a infinite loop to keep the threads running
