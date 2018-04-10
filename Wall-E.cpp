@@ -143,15 +143,11 @@ void dodge(int turn_drive, int degrees, int distance) {
 
     //turn
     if (turn_drive == 0) {
-        if (degrees < 0) {
-            degrees *= -1;
-            power *= -1;
-        }
-
-        BP.set_motor_power(m_left, power);
-        BP.set_motor_power(m_right, power * -1);
-        usleep(100000 * degrees);
-        stop_driving();
+		BP.set_motor_limits(m_left,35,1200);
+		BP.set_motor_limits(m_right,35,1200);
+		
+		BP.set_motor_position_relative(m_left,degrees*5.95);
+		BP.set_motor_position_relative(m_right,degrees*5.85*-1);
 
         //drive
     } else if (turn_drive == 1) {
