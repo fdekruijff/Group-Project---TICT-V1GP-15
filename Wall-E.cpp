@@ -47,6 +47,7 @@ const string LINE = "DRIVE_MODE_LINE";
 const string STOP = "DRIVE_MODE_STOP";
 const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
+const string OBJECT = "DRIVE_MODE_OBJECT";
 const string UP = "DIRECTION_UP";
 const string DOWNN = "DIRECTION_DOWN";
 const string LEFT = "DIRECTION_LEFT";
@@ -59,23 +60,23 @@ thread init_drive;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
-    auto last_error = 0.0;                     // Value set by PID
-    auto i_error = 0.0;                        // Value set by PID
-    auto set_point = 0.0;                      // Value set by sensor
-    auto last_time = 1.0;                      // Domain: unknown
-    auto i_gain = 0.01;                        // Domain: unknown
-    auto d_gain = 2.8;                         // Domain: unknown
-    auto p_gain = 0.295;                       // Domain: [0.275, 0.325]
-    auto compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    auto motor_power = 35;                     // Domain: [10, 80]
-    auto pid_update_frequency_ms = 11000;      // Domain: [10000, 175000]
-    auto max_x = 5;                            // GRID, max x value
-    auto max_y = 3;                            //  GRID, max y value
-    auto exit = false;                         // Exit boolean to stop Wall-E
-    auto driving_mode = STOP;                  // Default driving mode
-    auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
+    float last_error = 0.0;                     // Value set by PID
+    float i_error = 0.0;                        // Value set by PID
+    float set_point = 0.0;                      // Value set by sensor
+    float last_time = 1.0;                      // Domain: unknown
+    float i_gain = 0.01;                        // Domain: unknown
+    float d_gain = 2.8;                         // Domain: unknown
+    float p_gain = 0.275;                       // Domain: [0.275, 0.325]
+    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
+    int motor_power = 35;                     // Domain: [10, 80]
+    int pid_update_frequency_ms = 15000;      // Domain: [10000, 175000]
+    int max_x = 5;                            // GRID, max x value
+    int max_y = 3;                            // GRID, max y value
+    bool exit = false;                         // Exit boolean to stop Wall-E
+    string driving_mode = STOP;                  // Default driving mode
+    string driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
-    vector<int> last_coordinates = {0, 0};     // Current position of Wall-E on the GRID.
+    vector<int> last_coordinates = {0, 0};     // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
 };
 
@@ -143,15 +144,11 @@ void dodge(int turn_drive, int degrees, int distance) {
 
     //turn
     if (turn_drive == 0) {
-        if (degrees < 0) {
-            degrees *= -1;
-            power *= -1;
-        }
-
-        BP.set_motor_power(m_left, power);
-        BP.set_motor_power(m_right, power * -1);
-        usleep(100000 * degrees);
-        stop_driving();
+		BP.set_motor_limits(m_left,35,1200);
+		BP.set_motor_limits(m_right,35,1200);
+		
+		BP.set_motor_position_relative(m_left,degrees*5.95);
+		BP.set_motor_position_relative(m_right,degrees*5.85*-1);
 
         //drive
     } else if (turn_drive == 1) {
@@ -266,7 +263,7 @@ void calibrate() {
     color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
     color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
     cout << "Calibration finished." << endl <<
-         " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
+         "high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
     cout << "Red_high:   " << red_high_reflection << " Red_low:   " << red_low_reflection << endl <<
          "Blue_high:  " << blue_high_reflection << " Blue_low:  " << blue_low_reflection << endl <<
          "Green_high: " << green_high_reflection << " Green_low: " << green_low_reflection << endl;
@@ -350,11 +347,9 @@ float calculate_correction() {
 void find_color_values()
 // uses the color sensor to return the color values to use them for calibation.
 {
-    while (true) {
+    while (!brain.exit) {
         BP.get_sensor(s_contrast, contrast_struct);
         BP.get_sensor(s_color, color_struct);
-        cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red <<
-             "  green: " << color_struct.reflected_green << "  blue: " << color_struct.reflected_blue << endl;
         usleep(100000);
     }
 }
@@ -382,42 +377,42 @@ bool color_is_black() {
 }
 
 bool intersection() {
-
     return is_black() && color_is_black();
 }
 
-vector<int> compensator() {
-			float output = calculate_correction();
+vector<int> translate_coordinates(int x, int y) {
+    /// Translates coordinate system coordinates to nested vector coordinates
+    return{x, int(brain.grid.size() - y)};
+}
 
-            // TODO: work with the compensation
-//            auto comp = int(calc_compensation(brain.last_error));
-            auto comp = 0;
-            if (brain.last_error > 100) {
-                brain.motor_power * (1 / 4);
-            }
-            int lower_limit = (-100 + comp);
-            int higher_limit = (100 - comp);
-            int left = bound(brain.motor_power - output, lower_limit, higher_limit);
-            int right = bound(brain.motor_power + output, lower_limit, higher_limit);
-			usleep(brain.pid_update_frequency_ms);
-			return {left, right};
+string scan_surroundings() {
+    /// Returns the best direction to move to
+    vector<int> dir_codes; // {up, down, left, right}
+
+    for (int i = 0; i < 4; i++) { // Check 4 directions
+
+    }
+}
+
+vector<int> motor_correction() {
+    float output = calculate_correction();
+    float comp = calc_compensation(brain.last_error);
+    return {bound(brain.motor_power - comp - output, -100, 100), bound(brain.motor_power - comp + output, -100, 100)};
 }
 
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (!brain.exit) {
-		vector<int> left_right = compensator();
+		vector<int> correction = motor_correction();
         if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
             usleep(250000);
             continue;
         }
         if (brain.driving_mode == LINE) {
             /// Follows line by sending corrections to motors according to calculated error
-            steer_left(left_right[0]);
-            steer_right(left_right[1]);
-
-            cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right
-                 << " low: " << lower_limit << " high: " << higher_limit << endl;
+            steer_left(correction[0]);
+            steer_right(correction[1]);
+            usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
             /// Drives the grid based on intersections and LINE drive mode
@@ -447,17 +442,28 @@ void find_line() {
 }
 
 
-int around_object() {
+void around_object() {
+    thread findLine (find_line);
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    dodge(0, -90, 0);
-    turn_head(90);
-    dodge(1, 0, 20);
-    dodge(0, 90, 0);
-    no_object(1);
-    dodge(0, 90, 0);
-    turn_head(0);
-    sleep(0.5);
-    find_line();
+    vector<vector<int>> v_around_object = {{-90,90,1},{90,1},{90,0,20}}
+    while (brain.driving_mode == OBJECT){
+        for (int i = 0; i < v_around_object.size(); i++){
+                dodge(0,v_around_object[i][0],0);
+                if (v_around_object[i][1] == 90 or v_around_object[i][1] == 0){
+                    turn_head(v_around_object[i][1]);
+                }else if (v_around_object[i][1] == 1){
+                     no_object(1);
+                }
+                if (brain.driving_mode == LINE){
+                    break;
+                }
+                if ( v_around_object[i].size() == 3 and v_around_object[i][2] == 1){
+                    dodge(1, 0, 20);
+                }else if (v_around_object[i][1] == 20){
+                    motor_power(20);
+            }
+        }
+    }  
 }
 
 
@@ -467,6 +473,7 @@ void object_in_the_way() {
     while (!brain.exit) {
         if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
+	    brian.driving_mode = OBJECT;
             around_object();
         }
     }
@@ -476,7 +483,7 @@ void set_drive_mode() {
     string mode = "STOP";
     cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
     cin >> mode;
-    brain.driving_mode = mode;
+    brain.driving_mode = "DRIVE_MODE_" + mode;
     cout << endl;
 }
 

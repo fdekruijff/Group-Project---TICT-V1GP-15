@@ -23,22 +23,16 @@ void stop(void){
 }
 
 //Drive
-void driving(int turn_drive, int degrees, int distance){
+void dodge(int turn_drive, int degrees, int distance){
 	//Makes Wall-E turn and drive straight
 	int power =40;
-	float degrees /= 5.625; //360 conversie naar 64
 	
 	if(turn_drive== 0){
-		if(degrees < 0){
-			degrees *= -1;
-			power *= -1;
-		}
+		BP.set_motor_limits(m_left,35,1200);
+		BP.set_motor_limits(m_right,35,1200);
 		
-		BP.set_motor_power(m_left, power);
-		BP.set_motor_power(m_right, power*-1);
-		usleep(100000*degrees);
-		stop();
-		
+		BP.set_motor_position_relative(m_left,degrees*5.95);
+		BP.set_motor_position_relative(m_right,degrees*5.85*-1);
 	}else if(turn_drive==1){
 		if(distance < 0){
 			distance *= -1;
@@ -66,10 +60,10 @@ int main(){
 		cin >> inp;	//Take input from the terminal
 		if (inp=='d'){
 				//drive or steer, degrees, (rigth positive, left negative), distance
-				int turn_drive = steer;
-				int degrees = 360;
+				int turn_drive = 0;
+				int degrees = 90;
 				int distance =-10;
-				driving(turn_drive, degrees, distance);
+				dodge(turn_drive, degrees, distance);
 				
 		}else if (inp=='s'){
 				stop();
