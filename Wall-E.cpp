@@ -70,12 +70,12 @@ struct wall_e_settings {
     auto motor_power = 35;                     // Domain: [10, 80]
     auto pid_update_frequency_ms = 11000;      // Domain: [10000, 175000]
     auto max_x = 5;                            // GRID, max x value
-    auto max_y = 3;                            //  GRID, max y value
+    auto max_y = 3;                            // GRID, max y value
     auto exit = false;                         // Exit boolean to stop Wall-E
     auto driving_mode = STOP;                  // Default driving mode
     auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
-    vector<int> last_coordinates = {0, 0};     // Current position of Wall-E on the GRID.
+    vector<int> last_coordinates = {0, 0};     // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
 };
 
@@ -350,7 +350,7 @@ float calculate_correction() {
 void find_color_values()
 // uses the color sensor to return the color values to use them for calibation.
 {
-    while (true) {
+    while (!brain.exit) {
         BP.get_sensor(s_contrast, contrast_struct);
         BP.get_sensor(s_color, color_struct);
         cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red <<
@@ -383,8 +383,21 @@ bool color_is_black()
 }
 
 bool intersection() {
-
     return is_black() && color_is_black();
+}
+
+vector<int> translate_coordinates(int x, int y) {
+    /// Translates coordinate system coordinates to nested vector coordinates
+    return{x, int(brain.grid.size() - y)};
+}
+
+string scan_surroundings() {
+    /// Returns the best direction to move to
+    vector<int> dir_codes; // {up, down, left, right}
+
+    for (int i = 0; i < 4; i++) { // Check 4 directions
+
+    }
 }
 
 void drive() {
@@ -412,9 +425,6 @@ void drive() {
             steer_left(left);
             steer_right(right);
             usleep(brain.pid_update_frequency_ms);
-
-            cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right
-                 << " low: " << lower_limit << " high: " << higher_limit << endl;
         }
         if (brain.driving_mode == GRID) {
             /// Drives the grid based on intersections and LINE drive mode
