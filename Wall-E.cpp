@@ -66,7 +66,8 @@ struct wall_e_settings {
     auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};     // Current position of Wall-E on the GRID.
-    vector<vector<int>> grid;               // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
+    vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
+};
 
 ///  Declare the brain!
 wall_e_settings brain;
