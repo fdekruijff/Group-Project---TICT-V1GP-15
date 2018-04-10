@@ -445,7 +445,7 @@ void find_line() {
 void around_object() {
     thread findLine (find_line);
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    vector<vector<int>> v_around_object = {{-90,90,1},{90,1},{90,0,20}}
+    vector<vector<int>> v_around_object = {{-90,90,1},{90,1},{90,0,20}};
     while (brain.driving_mode == OBJECT){
         for (int i = 0; i < v_around_object.size(); i++){
                 dodge(0,v_around_object[i][0],0);
