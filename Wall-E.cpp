@@ -387,16 +387,8 @@ bool intersection() {
     return is_black() && color_is_black();
 }
 
-void drive() {
-    /// Threaded function that applies certain drive mode.
-    while (!brain.exit) {
-        if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
-            usleep(250000);
-            continue;
-        }
-        if (brain.driving_mode == LINE) {
-            /// Follows line by sending corrections to motors according to calculated error
-            float output = calculate_correction();
+vector<int> compensator() {
+			float output = calculate_correction();
 
             // TODO: work with the compensation
 //            auto comp = int(calc_compensation(brain.last_error));
@@ -408,10 +400,22 @@ void drive() {
             int higher_limit = (100 - comp);
             int left = bound(brain.motor_power - output, lower_limit, higher_limit);
             int right = bound(brain.motor_power + output, lower_limit, higher_limit);
+			usleep(brain.pid_update_frequency_ms);
+			return {left, right};
+}
 
-            steer_left(left);
-            steer_right(right);
-            usleep(brain.pid_update_frequency_ms);
+void drive() {
+    /// Threaded function that applies certain drive mode.
+    while (!brain.exit) {
+		vector<int> left_right = compensator();
+        if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
+            usleep(250000);
+            continue;
+        }
+        if (brain.driving_mode == LINE) {
+            /// Follows line by sending corrections to motors according to calculated error
+            steer_left(left_right[0]);
+            steer_right(left_right[1]);
 
             cout << "error: " << brain.last_error << " comp: " << comp << " left: " << left << " right: " << right
                  << " low: " << lower_limit << " high: " << higher_limit << endl;
