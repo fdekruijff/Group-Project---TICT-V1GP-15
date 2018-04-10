@@ -57,6 +57,7 @@ const string RIGHT = "DIRECTION_RIGHT";
 thread scan_distance;
 thread stop_object;
 thread init_drive;
+thread findLine;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
@@ -431,7 +432,6 @@ void drive() {
 
 void find_line() {
     brain.driving_mode = FREE;
-    motor_power(20);
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
@@ -473,7 +473,7 @@ void object_in_the_way() {
     while (!brain.exit) {
         if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
-	    brian.driving_mode = OBJECT;
+	    brain.driving_mode = OBJECT;
             around_object();
         }
     }
