@@ -59,21 +59,21 @@ thread init_drive;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
-    auto last_error = 0.0;                     // Value set by PID
-    auto i_error = 0.0;                        // Value set by PID
-    auto set_point = 0.0;                      // Value set by sensor
-    auto last_time = 1.0;                      // Domain: unknown
-    auto i_gain = 0.01;                        // Domain: unknown
-    auto d_gain = 2.8;                         // Domain: unknown
-    auto p_gain = 0.295;                       // Domain: [0.275, 0.325]
-    auto compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    auto motor_power = 35;                     // Domain: [10, 80]
-    auto pid_update_frequency_ms = 11000;      // Domain: [10000, 175000]
-    auto max_x = 5;                            // GRID, max x value
-    auto max_y = 3;                            // GRID, max y value
-    auto exit = false;                         // Exit boolean to stop Wall-E
-    auto driving_mode = STOP;                  // Default driving mode
-    auto driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
+    float last_error = 0.0;                     // Value set by PID
+    float i_error = 0.0;                        // Value set by PID
+    float set_point = 0.0;                      // Value set by sensor
+    float last_time = 1.0;                      // Domain: unknown
+    float i_gain = 0.01;                        // Domain: unknown
+    float d_gain = 2.8;                         // Domain: unknown
+    float p_gain = 0.275;                       // Domain: [0.275, 0.325]
+    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
+    int motor_power = 35;                     // Domain: [10, 80]
+    int pid_update_frequency_ms = 15000;      // Domain: [10000, 175000]
+    int max_x = 5;                            // GRID, max x value
+    int max_y = 3;                            // GRID, max y value
+    bool exit = false;                         // Exit boolean to stop Wall-E
+    string driving_mode = STOP;                  // Default driving mode
+    string driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};     // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
@@ -266,7 +266,7 @@ void calibrate() {
     color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
     color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
     cout << "Calibration finished." << endl <<
-         " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
+         "high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
     cout << "Red_high:   " << red_high_reflection << " Red_low:   " << red_low_reflection << endl <<
          "Blue_high:  " << blue_high_reflection << " Blue_low:  " << blue_low_reflection << endl <<
          "Green_high: " << green_high_reflection << " Green_low: " << green_low_reflection << endl;
@@ -353,8 +353,6 @@ void find_color_values()
     while (!brain.exit) {
         BP.get_sensor(s_contrast, contrast_struct);
         BP.get_sensor(s_color, color_struct);
-        cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red <<
-             "  green: " << color_struct.reflected_green << "  blue: " << color_struct.reflected_blue << endl;
         usleep(100000);
     }
 }
@@ -400,30 +398,24 @@ string scan_surroundings() {
     }
 }
 
+vector<int> motor_correction() {
+    float output = calculate_correction();
+    float comp = calc_compensation(brain.last_error);
+    return {bound(brain.motor_power - comp - output, -100, 100), bound(brain.motor_power - comp + output, -100, 100)};
+}
+
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (!brain.exit) {
+		vector<int> correction = motor_correction();
         if (brain.driving_mode == STOP || brain.driving_mode == FREE) {
             usleep(250000);
             continue;
         }
         if (brain.driving_mode == LINE) {
             /// Follows line by sending corrections to motors according to calculated error
-            float output = calculate_correction();
-
-            // TODO: work with the compensation
-//            auto comp = int(calc_compensation(brain.last_error));
-            auto comp = 0;
-            if (brain.last_error > 100) {
-                brain.motor_power * (1 / 4);
-            }
-            int lower_limit = (-100 + comp);
-            int higher_limit = (100 - comp);
-            int left = bound(brain.motor_power - output, lower_limit, higher_limit);
-            int right = bound(brain.motor_power + output, lower_limit, higher_limit);
-
-            steer_left(left);
-            steer_right(right);
+            steer_left(correction[0]);
+            steer_right(correction[1]);
             usleep(brain.pid_update_frequency_ms);
         }
         if (brain.driving_mode == GRID) {
@@ -483,7 +475,7 @@ void set_drive_mode() {
     string mode = "STOP";
     cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
     cin >> mode;
-    brain.driving_mode = mode;
+    brain.driving_mode = "DRIVE_MODE_" + mode;
     cout << endl;
 }
 
