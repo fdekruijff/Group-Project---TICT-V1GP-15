@@ -13,7 +13,7 @@ BrickPi3 BP;
 
 /// Motor / Sensor variable declaration
 uint8_t s_ultrasonic = PORT_3;                  // Ultrasonic sensor
-uint8_t s_colour = PORT_1;                       // Color sensor
+uint8_t s_color = PORT_1;                       // Color sensor
 uint8_t s_contrast = PORT_2;                    // Light sensor
 uint8_t m_head = PORT_A;                        // Head motor
 uint8_t m_left = PORT_B;                        // Left motor
@@ -21,7 +21,7 @@ uint8_t m_right = PORT_C;                       // Right motor
 
 sensor_light_t      contrast_struct;
 sensor_ultrasonic_t sonic_struct;
-sensor_color_t Colour_struct;
+sensor_color_t color_struct;
 
 /// Ultrasonic sensor variable declaration
 int distance_to_object = 0;
@@ -31,9 +31,18 @@ int limited_distance = 10;
 
 /// Calibration variable declaration
 bool calibrating = false;
+
 int16_t high_reflection = 0;                    // Black
 int16_t low_reflection = 0;                     // White
-bool intersection = true;
+
+int16_t red_high_reflection = 0;				// much Red
+int16_t red_low_reflection = 0;					// little Red
+int16_t blue_high_reflection = 0;				// much blue
+int16_t blue_low_reflection = 0;				// little blue
+int16_t green_high_reflection = 0;				// much green
+int16_t green_low_reflection = 0;				// little green
+
+vector<int> color_set_point = {0,0,0}; 
 
 /// Driving modes variable declaration
 const string LINE = "LINE";
@@ -73,7 +82,7 @@ void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
-    BP.set_sensor_type(s_colour, SENSOR_TYPE_NXT_COLOR_FULL);
+    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
     BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
 }
 
@@ -145,6 +154,29 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
+void measure_color_contrast()
+{
+    /// Thread function that reads color sensor values and calculates maximum and minimum from local vector.
+    vector<int16_t> red_tmp;
+	vector<int16_t> blue_tmp;
+	vector<int16_t> green_tmp;
+	
+    while (calibrating)
+	{
+		BP.get_sensor(s_color, color_struct);
+		red_tmp.push_back(color_struct.reflected_red);
+        blue_tmp.push_back(color_struct.reflected_blue);
+		green_tmp.push_back(color_struct.reflected_green);
+        usleep(25000);
+    }
+    red_high_reflection = max_vector(red_tmp);
+    red_low_reflection = min_vector(red_tmp);
+	blue_high_reflection = max_vector(blue_tmp);
+	blue_low_reflection = min_vector(blue_tmp);
+	green_high_reflection = max_vector(green_tmp);
+	green_low_reflection = min_vector(green_tmp);
+}
+
 //if a object is in the way of the PID it stops the PID.
 void object_in_the_way(){
     sleep(3);
@@ -160,6 +192,7 @@ void calibrate() {
     /// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
     calibrating = true;
     thread measure(measure_contrast);
+	thread color_measure(measure_color_contrast);
     int turn = 180;
     vector<vector<int>> power_profile = {
             {turn,  -turn},
@@ -177,9 +210,16 @@ void calibrate() {
     stop();
     motor_power_limit(100);
     measure.join();
+	color_measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
+	color_set_point[0] = (red_high_reflection + red_low_reflection) / 2;
+	color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
+	color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
     cout << "Calibration finished." << endl <<
          " high:" << int(high_reflection) << " low:" << int(low_reflection) << " set:" << brain.set_point << endl;
+	cout << "Red_high:   " << red_high_reflection << " Red_low:   " << red_low_reflection << endl << 
+	"Blue_high:  " << blue_high_reflection << " Blue_low:  " << blue_low_reflection << endl << 
+	"Green_high: " << green_high_reflection << " Green_low: " << green_low_reflection << endl;
 }
 
 void steer_left(uint8_t amount) {
@@ -234,6 +274,17 @@ bool is_white() {
     return sensor < high_reflection && sensor > brain.set_point;
 }
 
+bool color_is_black()
+	/// Is color sensor value in the black domain?
+{
+	float red_sensor = color_struct.reflected_red;
+	float blue_sensor = color_struct.reflected_blue;
+	float green_sensor = color_struct.reflected_green;
+	return (red_sensor < color_set_point[0] && red_sensor < red_high_reflection) &&
+			(blue_sensor < color_set_point[1] && blue_sensor < blue_high_reflection) &&
+			(green_sensor < color_set_point[2] && green_sensor < green_high_reflection);
+}
+
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (true) {
@@ -264,14 +315,15 @@ void find_line() {
     brain.driving_mode == LINE;
 }
 
-void find_colour_values()
-// uses the colour sensor to return the colour values to use them for calibation.
+void find_color_values()
+// uses the color sensor to return the color values to use them for calibation.
 {
-	while(intersection == true)
+	while(true)
 	{
 		BP.get_sensor(s_contrast, contrast_struct);
-		BP.get_sensor(s_colour, Colour_struct);
-		cout << "high ref: " << int(high_reflection) << "  red: " << Colour_struct.reflected_red << "  green: " << Colour_struct.reflected_green << "  blue: " << Colour_struct.reflected_blue << endl;
+		BP.get_sensor(s_color, color_struct);
+		cout << "high ref: " << contrast_struct.reflected << "  red: " << color_struct.reflected_red << 
+			"  green: " << color_struct.reflected_green << "  blue: " << color_struct.reflected_blue << endl;
 		usleep(100000);
 	}
 }
@@ -279,25 +331,40 @@ void find_colour_values()
 void find_intersection()
 // finds intersections in the back line and finds intersections that are closed.
 {
-	sleep(1);
-	while(intersection == true)
+	sleep(3);
+	while(true)
 	{
-		BP.get_sensor(s_colour, Colour_struct);
-		if(Colour_struct.reflected_red <= 350 && Colour_struct.reflected_green <= 350 && Colour_struct.reflected_blue <= 350)
+		BP.get_sensor(s_color, color_struct);
+		if(color_struct.reflected_red <= 350 && color_struct.reflected_green <= 350 && color_struct.reflected_blue <= 350)
 		{
 			cout << "found intersection" << endl;
-			//brain.driving_mode = STOP;
-			//break;
 		}
-		if(Colour_struct.reflected_red >= 350 && Colour_struct.reflected_green <= 350 && Colour_struct.reflected_blue <= 350)
+		if(color_struct.reflected_red >= 400 && color_struct.reflected_green <= 350 && color_struct.reflected_blue <= 350)
 		{
 			cout << "found closed intersection" << endl;
-			//brain.driving_mode = STOP;
-			//break;
+			stop();
+			break;
 		}
 		usleep(100000);//Sleep so it doesn't spam the console.
 	}
 }
+
+bool intersection()
+{
+
+	return is_black() && color_is_black();
+}
+
+void print()
+{
+	while(true)
+	{
+		cout << "****intersection:" << intersection() << "****" << endl;
+		usleep(100000);
+	}
+}
+
+//bool closed_intersection()
 
 int main() {
     setup();
@@ -306,16 +373,28 @@ int main() {
     brain.driving_mode = LINE;
 
     // Start sensor threads
-    thread scan_distance (scan_ultrasonic);
-    thread stop_opbeject (object_in_the_way);
+   // thread scan_distance (scan_ultrasonic);
+    //thread stop_opbeject (object_in_the_way);
 	
 
     // Start driving thread
     thread init_drive (drive);
 	
 	// Start intersection thread
-	thread scan_intersection(find_intersection);
-//	thread scan_colour_values(find_colour_values);
+//	thread scan_intersection(find_intersection);
+	thread scan_color_values(find_color_values);
+//	thread scanfor_intersection(intersection);
+	thread print_intersection(print);
+	while(true)
+	{
+		if(intersection() == true)
+		{
+			cout << "found intersection" << endl;
+			brain.driving_mode = STOP;
+			stop();
+		}
+		usleep(100000);
+	}
 
     while (true) {
         sleep(5);
