@@ -390,7 +390,7 @@ vector<int> scan_surroundings() {
     /// Returns the information in the surrounding tiles 
     vector<int> dir_codes = {0,0,0,0}; // {right, up, down, left}
 	vector<int> x = {1, 0, 0, -1};
-	vactor<int> y = {0, -1, 1, 0};
+	vector<int> y = {0, -1, 1, 0};
 
     for (int i = 0; i < 4; i++) { // Check 4 directions
 		dir_codes[i] = grid[current_coordinates[0 + x[i]]][current_coordinates[0 + y[i]]];
@@ -428,7 +428,7 @@ vector<int> check_destination(vector<int> current_coordinates) {
 
 vector<int> check_direction(vector<int> current_coordinates, vector<int> last_coordintes); {
 	if(current_coordinates[0] > last_coordinates[0] && current_coordinates[1] == last_coordintes[1]) {
-		return {0,0};
+		return "RIGHT";
 	}
 	if(current_coordinates[0] == last_coordinates[0] && current_coordinates[1] > last_coordinates[1]) {
 		return "UP";
