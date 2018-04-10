@@ -517,20 +517,10 @@ int main() {
     // Start sensor threads
     thread scan_distance(scan_ultrasonic);
     thread stop_object(object_in_the_way);
+    thread scan_color_values(find_color_values);
 
     // Start driving thread
     thread init_drive(drive);
-
-    // Start intersection thread
-    thread scan_color_values(find_color_values);
-    while (true) {
-        if (intersection() == true) {
-            cout << "found intersection" << endl;
-            brain.driving_mode = STOP;
-            stop();
-        }
-        usleep(100000);
-    }
 
     while (!brain.exit) {
         // Just a infinite loop to keep the threads running
