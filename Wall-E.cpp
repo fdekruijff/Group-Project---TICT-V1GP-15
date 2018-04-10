@@ -463,7 +463,8 @@ void around_object() {
                     motor_power(20);
             }
         }
-    }  
+    }
+    findLine.join;
 }
 
 
