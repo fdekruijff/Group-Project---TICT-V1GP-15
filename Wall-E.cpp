@@ -371,9 +371,8 @@ bool is_white() {
     return sensor < high_reflection && sensor > brain.set_point;
 }
 
-bool color_is_black()
+bool color_is_black() {
 /// Is color sensor value in the black domain?
-{
     float red_sensor = color_struct.reflected_red;
     float blue_sensor = color_struct.reflected_blue;
     float green_sensor = color_struct.reflected_green;
