@@ -47,6 +47,7 @@ const string LINE = "DRIVE_MODE_LINE";
 const string STOP = "DRIVE_MODE_STOP";
 const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
+const string OBJECT = "DRIVE_MODE_OBJECT";
 const string UP = "DIRECTION_UP";
 const string DOWNN = "DIRECTION_DOWN";
 const string LEFT = "DIRECTION_LEFT";
@@ -143,15 +144,11 @@ void dodge(int turn_drive, int degrees, int distance) {
 
     //turn
     if (turn_drive == 0) {
-        if (degrees < 0) {
-            degrees *= -1;
-            power *= -1;
-        }
-
-        BP.set_motor_power(m_left, power);
-        BP.set_motor_power(m_right, power * -1);
-        usleep(100000 * degrees);
-        stop_driving();
+		BP.set_motor_limits(m_left,35,1200);
+		BP.set_motor_limits(m_right,35,1200);
+		
+		BP.set_motor_position_relative(m_left,degrees*5.95);
+		BP.set_motor_position_relative(m_right,degrees*5.85*-1);
 
         //drive
     } else if (turn_drive == 1) {
@@ -446,17 +443,28 @@ void find_line() {
 }
 
 
-int around_object() {
+void around_object() {
+    thread findLine (find_line);
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    dodge(0, -90, 0);
-    turn_head(90);
-    dodge(1, 0, 20);
-    dodge(0, 90, 0);
-    no_object(1);
-    dodge(0, 90, 0);
-    turn_head(0);
-    sleep(0.5);
-    find_line();
+    vector<vector<int>> v_around_object = {{-90,90,1},{90,1},{90,0,20}}
+    while (brain.driving_mode == OBJECT){
+        for (int i = 0; i < v_around_object.size(); i++){
+                dodge(0,v_around_object[i][0],0);
+                if (v_around_object[i][1] == 90 or v_around_object[i][1] == 0){
+                    turn_head(v_around_object[i][1]);
+                }else if (v_around_object[i][1] == 1){
+                     no_object(1);
+                }
+                if (brain.driving_mode == LINE){
+                    break;
+                }
+                if ( v_around_object[i].size() == 3 and v_around_object[i][2] == 1){
+                    dodge(1, 0, 20);
+                }else if (v_around_object[i][1] == 20){
+                    motor_power(20);
+            }
+        }
+    }  
 }
 
 
@@ -466,6 +474,7 @@ void object_in_the_way() {
     while (!brain.exit) {
         if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
+	    brian.driving_mode = OBJECT;
             around_object();
         }
     }
