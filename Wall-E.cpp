@@ -57,6 +57,7 @@ const string RIGHT = "DIRECTION_RIGHT";
 thread scan_distance;
 thread stop_object;
 thread init_drive;
+thread findLine;
 
 /// Wall-E brain settings data structure declaration
 struct wall_e_settings {
@@ -77,7 +78,7 @@ struct wall_e_settings {
     string driving_direction = RIGHT;            // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};  // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};     // Previous position of Wall-E on the GRID.
-    vector<vector<int>> grid;                  // 0 = unexplored, 1 = obstruction, 2 = explored, 3 = destination, 4 = Wall-E
+    vector<vector<int>> grid;                  // -1 = out of bounds 0 = obstruction, 1 = explored, 2 = unexplored, 3 = destination, 4 = Wall-E
 };
 
 ///  Declare the brain!
@@ -366,9 +367,8 @@ bool is_white() {
     return sensor < high_reflection && sensor > brain.set_point;
 }
 
-bool color_is_black()
+bool color_is_black() {
 /// Is color sensor value in the black domain?
-{
     float red_sensor = color_struct.reflected_red;
     float blue_sensor = color_struct.reflected_blue;
     float green_sensor = color_struct.reflected_green;
@@ -386,13 +386,73 @@ vector<int> translate_coordinates(int x, int y) {
     return{x, int(brain.grid.size() - y)};
 }
 
-string scan_surroundings() {
-    /// Returns the best direction to move to
-    vector<int> dir_codes; // {up, down, left, right}
+vector<int> scan_surroundings() {
+    /// Returns the information in the surrounding tiles 
+    vector<int> dir_codes = {0,0,0,0}; // {right, up, down, left}
+	vector<int> x = {1, 0, 0, -1};
+	vector<int> y = {0, -1, 1, 0};
 
     for (int i = 0; i < 4; i++) { // Check 4 directions
-
+		dir_codes[i] = grid[current_coordinates[0 + x[i]]][current_coordinates[0 + y[i]]];
     }
+	return {dir_codes[0], dir_codes[1], dir_codes[2], dir_codes[3]};
+}
+
+vector<int> check_destination(vector<int> current_coordinates) {
+	/// Returns the best direction to move to
+	int tmp1 = -1;
+	int tmp2;
+	vector<int> destination = scan_surroundings();
+	for (int i = 0; i < destination.size();i++) {
+		if(destination[i] > tmp1) {
+			tmp1 = destination[i];
+			tmp2 = i;
+		}
+		if(tmp2 == 0) 
+			for(){
+				
+			}
+			return current_coordinates[0]+= 1;
+		}
+		else if(tmp2 == 1) {
+			return current_coordinates[1]+= 1;
+		}
+		else if(tmp2 == 2) {
+			return current_coordinates[0]-= 1;
+		}
+		else if(tmp2 == 3) {
+			return current_coordinates[1]-= 1;
+		}
+	}
+}
+
+vector<int> check_direction(vector<int> current_coordinates, vector<int> last_coordintes); {
+	if(current_coordinates[0] > last_coordinates[0] && current_coordinates[1] == last_coordintes[1]) {
+		return "RIGHT";
+	}
+	if(current_coordinates[0] == last_coordinates[0] && current_coordinates[1] > last_coordinates[1]) {
+		return "UP";
+	}
+	if{current_coordinates[0] == last_coordinates[0] && current_coordinates[1] < last_coordinates[1] {
+		return "DOWN";
+	}
+	if(current_coordinates[0] < last_coordinates[0] && current_coordinates[1] == last_coordinates[1]) {
+		return "LEFT";
+	}
+}
+
+void turn_to_destination() {
+	vector<int> destination;
+	string direction;
+	
+}
+
+void update_grid(vector<vector<int>> & grid,vector<int> & current_coordinates,vector<int> & last_coordinates,) {
+	//TODO: how to bring destination coordinates in this function
+	grid[current_coordinates[0]][current_coordinates[1]] = 1;
+	grid[]
+	last_coordinates = current_coordinates
+	//current_coordinates = destination coordinates
 }
 
 vector<int> motor_correction() {
@@ -432,7 +492,6 @@ void drive() {
 
 void find_line() {
     brain.driving_mode = FREE;
-    motor_power(20);
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
@@ -464,7 +523,8 @@ void around_object() {
                     motor_power(20);
             }
         }
-    }  
+    }
+    findLine.join;
 }
 
 
