@@ -48,10 +48,10 @@ const string STOP = "DRIVE_MODE_STOP";
 const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
 const string OBJECT = "DRIVE_MODE_OBJECT";
-const int UP = 1;
-const int DOWN = 2;
+const int RIGHT = 1;
+const int UP = 2;
 const int LEFT = 3;
-const int RIGHT = 4;
+const int DOWN = 4;
 
 /// Thread declaration
 thread scan_distance;
@@ -411,8 +411,15 @@ int scan_surroundings() {
 }
 
 void turn_to_destination(int direction) {
-
-
+	int turn = brain.driving_direction - direction;
+	
+	if(turn ==-1 or turn ==3){
+		dodge(0,-90,0);
+	}else if(turn ==1 or turn ==-3){
+		dodge(0,90,0);
+	}else if(turn ==2 or turn ==-2){
+		dodge(0,180,0);
+}
 
 }
 
