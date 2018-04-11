@@ -48,10 +48,10 @@ const string STOP = "DRIVE_MODE_STOP";
 const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
 const string OBJECT = "DRIVE_MODE_OBJECT";
-const int UP = 1;
-const int DOWN = 2;
+const int RIGHT = 1;
+const int UP = 2;
 const int LEFT = 3;
-const int RIGHT = 4;
+const int DOWN = 4;
 
 /// Thread declaration
 thread scan_distance;
@@ -406,9 +406,14 @@ int scan_surroundings() {
 }
 
 void turn_to_destination(int direction) {
-
-    
-
+	int turn = brain.driving_direction -direction.dir;
+	
+	if(turn ==-1 or turn ==3){
+		dodge(0,-90,0)
+	}else if(turn ==1 or turn ==-3){
+		dodge(0,90,0)
+	}else if(turn ==2 or turn ==-2){
+		dodge(0,180,0)  
 }
 
 void update_grid(vector<vector<int>> &grid, vector<int> &current_coordinates, vector<int> &last_coordinates,) {
@@ -451,7 +456,7 @@ void drive() {
                 usleep(brain.pid_update_frequency_ms);
             }
             // Intersection has been found
-            string direction = scan_surroundings(); // Get desired direction
+            int direction = scan_surroundings(); // Get desired direction
             turn_to_destination(direction);         // Turn Wall-E to next intersection
 
             // update GRID parameters
