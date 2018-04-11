@@ -40,7 +40,7 @@ int16_t blue_low_reflection = 0;                // - blue
 int16_t green_high_reflection = 0;              // + green
 int16_t green_low_reflection = 0;               // - green
 
-vector<int> color_set_point = {0, 0, 0};
+int color_set_point = 0;
 
 /// Driving modes variable declaration
 const string LINE = "DRIVE_MODE_LINE";
@@ -128,7 +128,7 @@ void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
-    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_RED);
+    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
     BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
     // TODO: calibrate head position
 }
@@ -188,11 +188,6 @@ int16_t get_contrast() {
     return contrast_struct.reflected;
 }
 
-int16_t get_red_contrast() {
-	BP.get_sensor(s_color, color_struct);
-	return color_struct.reflected;
-}
-
 int16_t max_vector(vector<int16_t> const vec) {
     /// Returns the highest integer value of a vector.
     // TODO: fix  duplicate code here
@@ -228,19 +223,23 @@ void measure_contrast() {
     low_reflection = min_vector(tmp);
 }
 
-void measure_red_contrast() {
+int16_t get_red_contrast() {
+	/// Returns the reflected red value.
+	BP.get_sensor(s_color, color_struct);
+	return color_struct.reflected;
+}
+
+void measure_color_contrast() {
     /// Thread function that reads color sensor values and calculates maximum and minimum from local vector.
     // TODO: remove redundant variable declaration and redundant assinging of values
     vector<int16_t> red_tmp;
-
+	
     while (calibrating) {
         red_tmp.push_back(get_red_contrast());
-
         usleep(12500);
     }
     red_high_reflection = max_vector(red_tmp);
     red_low_reflection = min_vector(red_tmp);
-
 }
 
 void calibrate() {
@@ -267,9 +266,7 @@ void calibrate() {
     measure.join();
     color_measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
-    color_set_point[0] = (red_high_reflection + red_low_reflection) / 2;
-    color_set_point[1] = (blue_high_reflection + blue_low_reflection) / 2;
-    color_set_point[2] = (green_high_reflection + green_low_reflection) / 2;
+    color_set_point = (red_high_reflection + red_low_reflection) / 2;
 }
 
 int turn_head(int degree) {
@@ -361,8 +358,7 @@ bool is_black() {
 bool color_is_black() {
 /// Is color sensor value in the black domain?
     float red_sensor = color_struct.reflected_red;
-    return (red_sensor > color_set_point[0] && red_sensor < red_high_reflection)
-
+    return (red_sensor > color_set_point - 100 && red_sensor < red_high_reflection) &&
 }
 
 bool intersection() {
@@ -396,20 +392,26 @@ int scan_surroundings() {
         if (dir_codes[i].code > tmp.code) {
             tmp = dir_codes[i];
         }
+        if (tmp.code == 3) {
+            cout << "E.V.E. found!" << endl;
+            dodge(0, 360, 0);
+            brain.exit = true;
+        }
     }
     return tmp.dir;
 }
 
 void turn_to_destination(int direction) {
+	int turn = brain.driving_direction - direction;
 	
+	if(turn ==-1 or turn ==3){
+		dodge(0,-90,0);
+	}else if(turn ==1 or turn ==-3){
+		dodge(0,90,0);
+	}else if(turn ==2 or turn ==-2){
+		dodge(0,180,0);
 }
 
-void update_grid(vector<vector<int>> &grid, vector<int> &current_coordinates, vector<int> &last_coordinates,) {
-    //TODO: how to bring destination coordinates in this function
-    grid[current_coordinates[0]][current_coordinates[1]] = 1;
-//    grid[]
-//    last_coordinates = current_coordinates
-    //current_coordinates = destination coordinates
 }
 
 vector<int> motor_correction() {
@@ -417,6 +419,24 @@ vector<int> motor_correction() {
     float output = calculate_correction();
     float comp = calc_compensation(brain.last_error);
     return {bound(brain.motor_power - comp - output, -100, 100), bound(brain.motor_power - comp + output, -100, 100)};
+}
+
+vector<int> get_new_coordinates(int direction, vector<int> current_position) {
+    if (direction == UP) return {current_position[0], current_position[1]+1};
+    if (direction == DOWN) return {current_position[0], current_position[1]-1};
+    if (direction == RIGHT) return {current_position[0]+1, current_position[1]};
+    if (direction == LEFT) return {current_position[0]-1, current_position[1]};
+}
+
+void update_virtual_grid() {
+    /// Update virtual grid based on position and driving direction
+    // Set current position value to 1 for explored.
+    brain.grid[brain.current_coordinates[0]][brain.current_coordinates[1]] = 1;
+
+    // Set new position for Wall-E based on brain.driving direction
+    brain.last_coordinates = brain.current_coordinates;
+    brain.current_coordinates = get_new_coordinates(brain.driving_direction, brain.current_coordinates);
+    brain.grid[brain.current_coordinates[0]][brain.current_coordinates[1]] = 4;
 }
 
 void drive() {
@@ -435,8 +455,6 @@ void drive() {
         }
         if (brain.driving_mode == GRID) {
             /// Drives the grid based on intersections and LINE drive mode
-            // RIGHT == x+1     UP    == y+1
-            // LEFT  == x-1     DOWN  == y-1
 
             while (!intersection()) {
                 steer_left(correction[0]);
@@ -444,10 +462,12 @@ void drive() {
                 usleep(brain.pid_update_frequency_ms);
             }
             // Intersection has been found
-            int direction = scan_surroundings(); // Get desired direction
+            int direction = scan_surroundings();    // Get desired direction
             turn_to_destination(direction);         // Turn Wall-E to next intersection
 
             // update GRID parameters
+            brain.driving_direction = direction;
+            update_virtual_grid();
         }
     }
 }
