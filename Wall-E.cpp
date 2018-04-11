@@ -45,9 +45,9 @@ const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
 const string OBJECT = "DRIVE_MODE_OBJECT";
 const int RIGHT = 1;
-const int UP = 2;
-const int LEFT = 3;
-const int DOWN = 4;
+const int UP    = 2;
+const int LEFT  = 3;
+const int DOWN  = 4;
 
 /// Thread declaration
 thread scan_distance;
@@ -124,7 +124,7 @@ void setup() {
     signal(SIGINT, exit_signal_handler);
     BP.detect();
     BP.set_sensor_type(s_contrast, SENSOR_TYPE_NXT_LIGHT_ON);
-    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_FULL);
+    BP.set_sensor_type(s_color, SENSOR_TYPE_NXT_COLOR_RED);
     BP.set_sensor_type(s_ultrasonic, SENSOR_TYPE_NXT_ULTRASONIC);
     // TODO: calibrate head position
 }
