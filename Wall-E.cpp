@@ -188,6 +188,12 @@ int16_t get_contrast() {
     return contrast_struct.reflected;
 }
 
+int16_t get_red_contrast() {
+	/// Returns the reflected red value.
+	BP.get_sensor(s_color, color_struct);
+	return color_struct.reflected_red;
+}
+
 int16_t max_vector(vector<int16_t> const vec) {
     /// Returns the highest integer value of a vector.
     // TODO: fix  duplicate code here
@@ -221,12 +227,6 @@ void measure_contrast() {
     }
     high_reflection = max_vector(tmp);
     low_reflection = min_vector(tmp);
-}
-
-int16_t get_red_contrast() {
-	/// Returns the reflected red value.
-	BP.get_sensor(s_color, color_struct);
-	return color_struct.reflected;
 }
 
 void measure_color_contrast() {
@@ -358,7 +358,7 @@ bool is_black() {
 bool color_is_black() {
 /// Is color sensor value in the black domain?
     float red_sensor = color_struct.reflected_red;
-    return (red_sensor > color_set_point - 100 && red_sensor < red_high_reflection) &&
+    return (red_sensor > color_set_point - 100 && red_sensor < red_high_reflection);
 }
 
 bool intersection() {
@@ -508,7 +508,7 @@ void around_object() {
             }
         }
     }
-    findLine.join;
+    findLine.join();
 }
 
 
