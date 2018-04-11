@@ -48,10 +48,10 @@ const string STOP = "DRIVE_MODE_STOP";
 const string GRID = "DRIVE_MODE_GRID";
 const string FREE = "DRIVE_MODE_FREE";
 const string OBJECT = "DRIVE_MODE_OBJECT";
-const string UP = "DIRECTION_UP";
-const string DOWN = "DIRECTION_DOWN";
-const string LEFT = "DIRECTION_LEFT";
-const string RIGHT = "DIRECTION_RIGHT";
+const int UP = 1;
+const int DOWN = 2;
+const int LEFT = 3;
+const int RIGHT = 4;
 
 /// Thread declaration
 thread scan_distance;
@@ -60,7 +60,7 @@ thread init_drive;
 thread findLine;
 
 struct direction {
-    string dir;
+    int dir;
     int code;
 };
 
@@ -78,9 +78,9 @@ struct wall_e_settings {
     int pid_update_frequency_ms = 15000;        // Domain: [10000, 175000]
     int max_x = 5;                              // GRID, max x value
     int max_y = 3;                              // GRID, max y value
+    int driving_direction = RIGHT;              // Driving direction on GRID as seen from below the coordinate system
     bool exit = false;                          // Exit boolean to stop Wall-E
     string driving_mode = STOP;                 // Default driving mode
-    string driving_direction = RIGHT;           // Driving direction on GRID as seen from below the coordinate system
     vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};      // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                   // -1 = out of bounds 0 = obstruction, 1 = explored, 2 = unexplored, 3 = destination, 4 = Wall-E
@@ -379,7 +379,7 @@ vector<int> translate_coordinates(int x, int y) {
     return {x, int(brain.grid.size() - y)};
 }
 
-string scan_surroundings() {
+int scan_surroundings() {
     /// Returns the information in the surrounding tiles 
     vector<direction> dir_codes = {{UP, 0}, {DOWN, 0}, {RIGHT, 0}, {LEFT, 0}}; // {right, down, up, left}
     vector<vector<int>> c = {{0, 1}, {0, -1}, {-1, 0}, {-1,0}};
@@ -405,8 +405,9 @@ string scan_surroundings() {
     return tmp.dir;
 }
 
-void turn_to_destination(string direction) {
-    vector<int> destination;
+void turn_to_destination(int direction) {
+
+    
 
 }
 
