@@ -32,7 +32,7 @@ void dodge(bool turn_drive, int degrees, int distance) {
 
     //turn
     if (!turn_drive) {
-		motor_power_limit(35, 1200)
+		motor_power_limit(35, 1200);
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
@@ -45,7 +45,7 @@ void dodge(bool turn_drive, int degrees, int distance) {
             distance *= -1;
             power *= -1;
         }
-		motor_power(power)
+		motor_power(power);
         usleep(76927 * distance);
         stop_driving();
     }
