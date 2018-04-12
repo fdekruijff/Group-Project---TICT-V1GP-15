@@ -27,11 +27,7 @@ int turn_head(int degree) {
 void dodge(int turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
 	// TODO: fix bool
-<<<<<<< HEAD
-    ///Makes Wall-E turn and drive straight.
-=======
     //Makes Wall-E turn and drive straight
->>>>>>> e0ee5c7abf597534c2363f758b78ae5c8020ab1f
     int power = 40;
 
     //turn
@@ -63,34 +59,6 @@ void steer_right(int amount) {
     BP.set_motor_power(m_right, uint8_t(amount));
 }
 
-<<<<<<< HEAD
-void around_object() {
-    thread findLine(find_line);
-    /// Main function to drive around the obstacle. it calls all the functions in the right order.
-    vector<vector<int>> v_around_object = {{-90, 90, 1},
-                                           {90,  1},
-                                           {90,  0,  20}};
-    while (brain.driving_mode == OBJECT) {
-        for (int i = 0; i < v_around_object.size(); i++) {
-            dodge(0, v_around_object[i][0], 0);
-            if (v_around_object[i][1] == 90 or v_around_object[i][1] == 0) {
-                turn_head(v_around_object[i][1]);
-            } else if (v_around_object[i][1] == 1) {
-                no_object();
-            }
-            if (brain.driving_mode == LINE) {
-                break;
-            }
-            if (v_around_object[i].size() == 3 and v_around_object[i][2] == 1) {
-                dodge(1, 0, 20);
-            } else if (v_around_object[i][1] == 20) {
-                motor_power(20);
-            }
-        }
-    }
-    findLine.join();
-}
-=======
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
     dodge(0, -90, 0);
@@ -102,4 +70,3 @@ int around_object() {
     motor_power(20);
     sleep(99999999);
 }
->>>>>>> e0ee5c7abf597534c2363f758b78ae5c8020ab1f

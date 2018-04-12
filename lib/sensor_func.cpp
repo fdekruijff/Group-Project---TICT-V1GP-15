@@ -141,10 +141,6 @@ void object_in_the_way() {
 <<<<<<< HEAD
     while (!brain.exit and brain.driving_mode == LINE) {
         if (sonic_struct.cm < brain.limited_distance) {
-=======
-    while (!brain.exit) {
-        if (sonic_struct.cm < limited_distance) {
->>>>>>> e0ee5c7abf597534c2363f758b78ae5c8020ab1f
             brain.driving_mode = STOP;
             thread x (around_object);
             find_line();
