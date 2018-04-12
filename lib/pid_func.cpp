@@ -1,0 +1,41 @@
+#include "../Wall-E.h"
+
+void find_line() {
+    brain.driving_mode = FREE;
+    while (brain.driving_mode == FREE && !is_black()) {
+        usleep(500000);
+    }
+    stop_driving();
+    cout << "Wall-E found the line again!, starting PID controller." << endl;
+    dodge(0, -90, 0);
+    brain.driving_mode = LINE;
+}
+
+float calc_compensation(float x) {
+    return float((1.0 / brain.compensation_multiplier) * (x * x));
+}
+
+float calculate_correction() {
+    /// PID calculations are performed here. Magic for the most part.
+    float sensor = line_val();
+    float error = brain.set_point - sensor;
+
+    float p_error = error;
+    brain.i_error += (error + brain.last_error) * brain.last_time;
+    float d_error = (error - brain.last_error) / brain.last_time;
+
+    float p_output = brain.p_gain * p_error;
+    float i_output = brain.i_gain * brain.i_error;
+    float d_output = brain.d_gain * d_error;
+    brain.last_error = error;
+
+    // TODO: FIX Integral and Derivative of PID.
+    return p_output;
+}
+
+vector<int> motor_correction() {
+    /// Returns PID calculated motor correction for left and right motor
+    float output = calculate_correction();
+    float comp = calc_compensation(brain.last_error);
+    return {bound(brain.motor_power - comp - output, -100, 100), bound(brain.motor_power - comp + output, -100, 100)};
+}
