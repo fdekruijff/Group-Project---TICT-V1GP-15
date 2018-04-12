@@ -12,10 +12,10 @@ void motor_power(int power) {
     BP.set_motor_power(m_right, uint8_t(power));
 }
 
-void motor_power_limit(int power) {
+void motor_power_limit(int power, int dps) {
     /// Set motor power to specific power limit simultaneously.
-    BP.set_motor_limits(m_left, uint8_t(power), 0);
-    BP.set_motor_limits(m_right, uint8_t(power), 0);
+    BP.set_motor_limits(m_left, uint8_t(power), dps);
+    BP.set_motor_limits(m_right, uint8_t(power), dps);
 }
 
 int turn_head(int degree) {
@@ -25,26 +25,26 @@ int turn_head(int degree) {
 
 void dodge(int turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
+    // TODO: fix bool
     //Makes Wall-E turn and drive straight
     int power = 40;
-    degrees /= 5.625; //360 conversion to 64
 
     //turn
-    if (turn_drive == 0) {
-        BP.set_motor_limits(m_left, 35, 1200);
-        BP.set_motor_limits(m_right, 35, 1200);
+    if (!turn_drive) {
+        motor_power_limit(35, 1200);
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
 
+        usleep(abs(degrees*20000));
+
         //drive
-    } else if (turn_drive == 1) {
+    } else if (turn_drive) {
         if (distance < 0) {
             distance *= -1;
             power *= -1;
         }
-        BP.set_motor_power(m_left, int8_t(power));
-        BP.set_motor_power(m_right, int8_t(power));
+        motor_power(power);
         usleep(76927 * distance);
         stop_driving();
     }
@@ -60,13 +60,13 @@ void steer_right(int amount) {
     BP.set_motor_power(m_right, uint8_t(amount));
 }
 
-int around_object() {
+void around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
     dodge(0, -90, 0);
     turn_head(90);
     dodge(1, 0, 20);
     dodge(0, 180, 0);
-    no_object(1);
+    no_object();
     dodge(0,180, 0);
     motor_power(20);
     sleep(99999999);

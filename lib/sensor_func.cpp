@@ -59,7 +59,7 @@ void calibrate() {
             {-turn, turn},
             {turn,  -turn}};
 
-    motor_power_limit(40);
+    motor_power_limit(40, 0);
     for (int i = 0; i < power_profile.size(); i++) {
         BP.set_motor_position_relative(m_right, power_profile[i][0]);
         BP.set_motor_position_relative(m_left, power_profile[i][1]);
@@ -67,7 +67,7 @@ void calibrate() {
     }
     calibrating = false;
     stop_driving();
-    motor_power_limit(100);
+    motor_power_limit(100, 0);
     measure.join();
     brain.set_point = (high_reflection + low_reflection) / 2;
     brain.color_set_point = (red_high_reflection + red_low_reflection) / 2;
@@ -138,11 +138,11 @@ void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
     while (!brain.exit) {
-        if (sonic_struct.cm < limited_distance) {
+        if (sonic_struct.cm < brain.limited_distance) {
             brain.driving_mode = STOP;
-            thread x (around_object);
+            thread move_around (around_object);
             find_line();
-            if (x.joinable()) x.join();
+            if (move_around.joinable()) move_around.join();
         }
     }
 }

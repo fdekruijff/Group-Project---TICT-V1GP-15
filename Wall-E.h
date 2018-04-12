@@ -53,7 +53,7 @@ const int DOWN = 4;
 thread scan_distance;
 thread stop_object;
 thread init_drive;
-thread findLine;
+thread move_around;
 
 struct direction {
     int dir;
@@ -70,14 +70,16 @@ struct wall_e_settings {
     float i_gain = 0.01;                        // Domain: unknown
     float d_gain = 2.8;                         // Domain: unknown
     float p_gain = 0.225;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 40;                       // Domain: [10, 80]
-    int pid_update_frequency_ms = 13500;        // Domain: [10000, 175000]
+    float compensation_multiplier = 1000.0;      // Domain: [750, 1200]
+    int motor_power = 50;                       // Domain: [10, 80]
+    int pid_update_frequency_ms = 13750;        // Domain: [10000, 175000]
     int driving_direction = RIGHT;              // Driving direction on GRID as seen from below the coordinate system
     int limited_distance = 10;                  // Sensor distance to stop PID
     bool exit = false;                          // Exit boolean to stop Wall-E
+    bool found_eve = false;
     string driving_mode = STOP;                 // Default driving mode
-    vector<int> current_coordinates = {1, 1};   // Current position of Wall-E on the GRID.
+    vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
+    vector<int> destination_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};      // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                   // -1 = out of bounds 0 = obstruction, 1 = explored, 2 = unexplored, 3 = destination, 4 = Wall-E
 };
@@ -85,12 +87,13 @@ struct wall_e_settings {
 ///  Declare the brain!
 wall_e_settings brain;
 
+
 void exit_signal_handler(int sig);              // Control-C handler that resets Brick Pi and exits application.
 void stop();                                    // Stops driving Wall-E and exit the threads.
 void stop_driving();
 void setup();
 void motor_power(int power);
-void motor_power_limit(int power);
+void motor_power_limit(int power, int dps);
 void dodge(int turn_drive, int degrees, int distance);
 void scan_ultrasonic();
 void steer_left(int amount);
@@ -108,16 +111,17 @@ void calibrate();
 void print_grid();
 float calc_compensation(float x);
 float calculate_correction();
-int translate_y(int y);
 int scan_surroundings();
 int bound(float value, int begin, int end);
 int turn_head(int degree);
 int no_object();
+int get_desired_direction();
 bool is_black();
 bool color_is_black();
 bool intersection();
 vector<int16_t> get_contrast();
 vector<int> motor_correction();
+vector<int> translate_xy_to_vector(int x, int y);
 vector<int> get_new_coordinates(int direction, vector<int> current_position);
 int16_t max_vector(vector<int16_t> const vec);
 int16_t min_vector(vector<int16_t> const vec);

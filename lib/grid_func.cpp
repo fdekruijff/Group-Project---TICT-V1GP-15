@@ -15,47 +15,57 @@ void print_grid() {
     cout << "]";
 }
 
-int translate_y(int y) {
+vector<int> translate_xy_to_vector(int x, int y) {
     /// Translates coordinate system coordinates to nested vector coordinates
-    return brain.grid.size() - y - 1;
+    return {x, int(brain.grid.size()) - y - 1};
+}
+
+int get_desired_direction() {
+    /// Returns desired direction based on destination and current position
+    int dx = brain.destination_coordinates[0] - brain.current_coordinates[0];
+    int dy = brain.destination_coordinates[1] - brain.current_coordinates[1];
+    cout << "dx:" << dx << " dy:" << dy << endl;
+    if (dx > dy) {
+        if (dx > 0) return RIGHT;
+        else if (dx < 0) return LEFT;
+    } else {
+        if (dy > 0) return UP;
+        else if (dy < 0) return DOWN;
+    }
 }
 
 int scan_surroundings() {
     /// Returns the information in the surrounding tiles
-    vector<direction> dir_codes = {{RIGHT, 0}, {UP, 0}, {LEFT, 0},{DOWN, 0}};
-    vector<vector<int>> c = {{0,  1},
-                             {0,  -1},
-                             {-1, 0},
-                             {-1, 0}};
+    vector<direction> dir_codes = {{RIGHT, 0}, {UP,    0},  {LEFT,  0}, {DOWN,  0}};
+    vector<vector<int>> c = {{1,  0}, {0,  1}, {-1, 0}, {0, -1}};
 
+    // Assign values to directions
     for (unsigned int i = 0; i < dir_codes.size(); i++) {
-        int x = brain.current_coordinates[0] + c[i][0];
-        int y = brain.current_coordinates[1] + translate_y(c[i][1]);
+        vector<int> vec = translate_xy_to_vector(brain.current_coordinates[0] + c[i][0],
+                                                 brain.current_coordinates[1] + c[i][1]
+        );
 
-        if (x < 0 || x > brain.grid[0].size() || y < 0 || y > brain.grid.size()) {
+        if (vec[0] < 0 || vec[0] > brain.grid[0].size() || vec[1] < 0 || vec[1] > brain.grid.size() -1) {
             dir_codes[i].code = -1;
-        } else  {
-            dir_codes[i].code = brain.grid[x][y];
+        } else {
+            dir_codes[i].code = brain.grid[vec[0]][vec[1]];
         }
     }
 
-    direction tmp;
+    int desired_dir = get_desired_direction();
+    direction tmp = dir_codes[0];
     for (unsigned int i = 0; i < dir_codes.size(); i++) {
-        tmp = dir_codes[0];
-        if (dir_codes[i].code > tmp.code) {
-            if (dir_codes[i].code != 4) {
-                tmp = dir_codes[i];
+        cout << "dir: " << dir_codes[i].dir<< " code: " << dir_codes[i].code << " des: " << desired_dir << endl;
+        if (dir_codes[i].dir == desired_dir) {
+            // This is the direction you want to be going... Make sure it is not an obstacle or something
+            if (dir_codes[i].code != -1 || dir_codes[i].code != 0) {
+                return dir_codes[i].dir;
             }
         }
-        if (tmp.code == 3) {
-            cout << "E.V.E. found!" << endl;
-            dodge(0, 180, 0);
-            brain.exit = true;
+        if (dir_codes[i].code > tmp.code) {
+            tmp = dir_codes[i];
         }
     }
-
-    print_grid();
-
     return tmp.dir;
 }
 
@@ -63,10 +73,13 @@ void turn_to_destination(int direction) {
     // 0=no change, -1=left, 1=right >1 turn
     int turn = brain.driving_direction - direction;
     if (turn == -1 or turn == 3) {
-        dodge(0, 90, 0);
-    } else if (turn == 1 or turn == -3) {
+        stop_driving();
         dodge(0, -90, 0);
+    } else if (turn == 1 or turn == -3) {
+        stop_driving();
+        dodge(0, 90, 0);
     } else if (turn == 2 or turn == -2) {
+        stop_driving();
         dodge(0, 180, 0);
     }
 }
@@ -93,23 +106,25 @@ void set_grid_parameters() {
         }
         cout << endl;
     }
-    brain.grid[0][translate_y(0)] = 4;
-    brain.grid[x][translate_y(y)] = 3;
+    brain.destination_coordinates = {x, y};
+    brain.grid[0][translate_xy_to_vector(brain.current_coordinates[0], brain.current_coordinates[1])[1]] = 4;
+    brain.grid[x][translate_xy_to_vector(0, y)[1]] = 3;
+
+    update_virtual_grid();
 }
 
 void update_virtual_grid() {
     /// Update virtual grid based on position and driving direction
-    // Set current position value to 1 for explored.
-    int cx = brain.current_coordinates[0];
-    int cy = brain.current_coordinates[1];
-    int vx = cx;
-    int vy = translate_y(cy);
-    brain.grid[vx][vy] = 1;
-
-    // Set new position for Wall-E based on brain.driving direction
+    vector<int> new_coordinates = get_new_coordinates(brain.driving_direction, brain.current_coordinates);
+    cout << "new coordinates: (" << new_coordinates[0] << ", " << new_coordinates[1] << ")" << endl;
+    brain.grid[translate_xy_to_vector(brain.last_coordinates[0], 0)[0]][translate_xy_to_vector(0, brain.last_coordinates[1])[1]] = 1;
+    brain.current_coordinates = new_coordinates;
+    if ( brain.grid[translate_xy_to_vector(brain.current_coordinates[0], 0)[0]][translate_xy_to_vector(0, brain.current_coordinates[1])[1]] == 3) {
+        // Destination has been reached
+        brain.found_eve = true;
+    }
     brain.last_coordinates = brain.current_coordinates;
-    brain.current_coordinates = get_new_coordinates(brain.driving_direction, brain.current_coordinates);
-    brain.grid[brain.current_coordinates[0]][translate_y(brain.current_coordinates[1])] = 4;
+    brain.grid[translate_xy_to_vector(brain.current_coordinates[0], 0)[0]][translate_xy_to_vector(0, brain.current_coordinates[1])[1]] = 4;
 }
 
 vector<int> get_new_coordinates(int direction, vector<int> current_position) {

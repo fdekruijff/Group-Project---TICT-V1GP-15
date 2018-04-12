@@ -7,6 +7,7 @@
 
 void stop() {
     /// Stops driving Wall-E and exit the threads.
+    stop_driving();
     BP.set_motor_power(m_right, 0);
     BP.set_motor_power(m_left, 0);
 
@@ -19,6 +20,8 @@ void stop() {
     if (init_drive.joinable()) {
         init_drive.join();
     }
+    cout << "Wall-E is going to sleep" << endl;
+    exit(0);
 }
 
 void exit_signal_handler(int sig) {
@@ -63,7 +66,7 @@ void drive() {
         }
         if (brain.driving_mode == GRID) {
             /// Drives the grid based on intersections and LINE drive mode
-
+            print_grid();
             while (!intersection()) {
                 correction = motor_correction();
                 steer_left(correction[0]);
@@ -71,14 +74,18 @@ void drive() {
                 usleep(brain.pid_update_frequency_ms);
             }
             // Intersection has been found
-            cout << "Intersection found" << endl;
-            dodge(1, 0, 10);
-            int direction = scan_surroundings();    // Get desired direction
-            turn_to_destination(direction);         // Turn Wall-E to next intersection
-
-            // update GRID parameters
-            brain.driving_direction = direction;
-            update_virtual_grid();
+            dodge(1, 0, 10);                        // Continue driving for 10cm
+            if (brain.found_eve) {
+                cout << "Found E.V.E." << endl;
+//                dodge(0, 360, 0);
+                stop();
+            } else {
+                int direction = scan_surroundings();    // Get desired direction
+                turn_to_destination(direction);         // Turn Wall-E to next intersection
+                // update GRID parameters
+                brain.driving_direction = direction;
+                update_virtual_grid();
+            }
         }
     }
 }
