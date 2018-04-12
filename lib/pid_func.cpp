@@ -10,7 +10,7 @@ void find_line() {
     stop_driving();
     cout << "Wall-E found the line again!, starting PID controller." << endl;
     if (x.joinable()) x.join();
-    dodge(0, -90, 0);
+    dodge(false, -90, 0);
     turn_head(-90);
     brain.driving_mode = LINE;
 }

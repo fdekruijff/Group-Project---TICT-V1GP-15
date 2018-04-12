@@ -1,6 +1,5 @@
 #include "../Wall-E.h"
 
-
 void print_grid() {
     /// Visualise the virtual grid.
     cout << "Virtual GRID state: " << endl;
@@ -49,7 +48,7 @@ int scan_surroundings() {
         }
         if (tmp.code == 3) {
             cout << "E.V.E. found!" << endl;
-            dodge(0, 180, 0);
+            dodge(false, 180, 0);
             brain.exit = true;
         }
     }
@@ -64,11 +63,11 @@ void turn_to_destination(int direction) {
     // 0=no change, -1=left, 1=right >1 turn
     int turn = brain.driving_direction - direction;
     if (turn == -1 or turn == 3) {
-        dodge(0, 90, 0);
+        dodge(false, 90, 0);
     } else if (turn == 1 or turn == -3) {
-        dodge(0, -90, 0);
+        dodge(false, -90, 0);
     } else if (turn == 2 or turn == -2) {
-        dodge(0, 180, 0);
+        dodge(false, 180, 0);
     }
 }
 

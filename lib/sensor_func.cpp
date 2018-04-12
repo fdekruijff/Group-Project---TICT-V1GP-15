@@ -7,30 +7,26 @@ vector<int16_t> get_contrast() {
     return {contrast_struct.reflected, color_struct.reflected_red};
 }
 
-int16_t max_vector(vector<int16_t> const vec) {
-    /// Returns the highest integer value of a vector.
+int16_t val_vector(vector<int16_t> const vec, bool max_min) {
+    /// Returns the highest or lowest integer value of a vector.
     // TODO: fix  duplicate code here
-    int16_t tmp = vec[0];
-    for (unsigned int i = 0; i < vec.size(); i++) {
-        if (vec[i] > tmp) {
-            tmp = vec[i];
-        }
-    }
-    return tmp;
+    if(!max_min){
+		int16_t tmp = vec[0];
+		for (unsigned int i = 0; i < vec.size(); i++) {
+			if (vec[i] > tmp) {
+				tmp = vec[i];
+			}
+		}
+	}else if(max_min){
+		int16_t tmp = 10000;
+		for (unsigned int i = 0; i < vec.size(); i++) {
+			if (vec[i] < tmp && vec[i] != 0) {
+				tmp = vec[i];
+			}
+		}
+	}
+	return tmp;
 }
-
-int16_t min_vector(vector<int16_t> const vec) {
-    /// Returns the lowest integer value of a vector.
-    // TODO: fix  duplicate code here
-    int16_t tmp = 10000;
-    for (unsigned int i = 0; i < vec.size(); i++) {
-        if (vec[i] < tmp && vec[i] != 0) {
-            tmp = vec[i];
-        }
-    }
-    return tmp;
-}
-
 
 void measure_contrast() {
     /// Thread function that reads sensor values and calculates maximum and minimum from local vector.
@@ -42,10 +38,10 @@ void measure_contrast() {
         __tmp.push_back(c[1]);
         usleep(12500);
     }
-    high_reflection = max_vector(_tmp);
-    low_reflection = min_vector(_tmp);
-    red_high_reflection = min_vector(__tmp);
-    red_low_reflection = max_vector(__tmp);
+    high_reflection = val_vector(_tmp, false);
+    low_reflection = val_vector(_tmp, true);
+    red_high_reflection = val_vector(__tmp, true);
+    red_low_reflection = val_vector(__tmp, false);
 }
 
 void calibrate() {
@@ -108,39 +104,35 @@ int no_object() {
     bool end_of_object = false;
     while (!to_object) {
         if (!object and !end_of_object) {
-            dodge(1, 0, 1);
-            if (sonic_struct.cm < 20) {
+            dodge(true, 0, 1);
+            if (scan_ultrasonic() < 20) {
                 object = true;
             }
         }
         if (object and !end_of_object) {
-            dodge(1, 0, 1);
-            if (sonic_struct.cm > 30) {
+            dodge(true, 0, 1);
+            if (scan_ultrasonic() > 30) {
                 end_of_object = true;
             }
         }
         if (object and end_of_object) {
-            dodge(1, 0, 20);
+            dodge(true, 0, 20);
             to_object = true;
         }
     }
 }
 
-void scan_ultrasonic() {
-    /// Returns ultrasonic value
-    // TODO: maybe refactor this code.
-    while (!brain.exit) {
-        BP.get_sensor(s_ultrasonic, sonic_struct);
-        usleep(200000);
-    }
+int scan_ultrasonic() {
+    /// Returns ultrasonic value.
+	BP.get_sensor(s_ultrasonic, sonic_struct);
+    return sonic_struct.cm;
 }
 
 void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
-<<<<<<< HEAD
     while (!brain.exit and brain.driving_mode == LINE) {
-        if (sonic_struct.cm < brain.limited_distance) {
+        if (scan_ultrasonic() < brain.limited_distance) {
             brain.driving_mode = STOP;
             thread x (around_object);
             find_line();

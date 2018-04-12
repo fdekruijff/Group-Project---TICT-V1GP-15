@@ -24,21 +24,21 @@ int turn_head(int degree) {
     BP.set_motor_position(m_head, degree);
 }
 
-void dodge(int turn_drive, int degrees, int distance) {
+void dodge(bool turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
 	// TODO: fix bool
     //Makes Wall-E turn and drive straight
     int power = 40;
 
     //turn
-    if (turn_drive == 0) {
+    if (!turn_drive) {
 		motor_power_limit(35, 1200)
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
 
 	//drive
-    } else if (turn_drive == 1) {
+    } else if (turn_drive) {
         if (distance < 0) {
             distance *= -1;
             power *= -1;
@@ -61,12 +61,12 @@ void steer_right(int amount) {
 
 int around_object() {
     /// main function to drive around the obstacle. it calls all the functions in the right order
-    dodge(0, -90, 0);
+    dodge(false, -90, 0);
     turn_head(90);
-    dodge(1, 0, 20);
-    dodge(0, 180, 0);
+    dodge(true, 0, 20);
+    dodge(false, 180, 0);
     no_object(1);
-    dodge(0,180, 0);
+    dodge(false,180, 0);
     motor_power(20);
     sleep(99999999);
 }

@@ -4,7 +4,6 @@
 #include "lib/grid_func.cpp"
 #include "lib/pid_func.cpp"
 
-
 void stop() {
     /// Stops driving Wall-E and exit the threads.
     BP.set_motor_power(m_right, 0);
@@ -65,7 +64,7 @@ void drive() {
             }
             // Intersection has been found
             cout << "Intersection found" << endl;
-            dodge(1, 0, 10);
+            dodge(true, 0, 10);
             int direction = scan_surroundings();    // Get desired direction
             turn_to_destination(direction);         // Turn Wall-E to next intersection
 

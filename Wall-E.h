@@ -91,8 +91,7 @@ void stop_driving();							// Stops driving Wall-E.
 void setup();									// Brick PI and exit handler are initialised here.
 void motor_power(int power);					// Set motor power to specific power level simultaneously.
 void motor_power_limit(int power);				// Set motor power to specific power limit simultaneously.
-void dodge(int turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
-void scan_ultrasonic();							// Returns ultrasonic value
+void dodge(bool turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
 void steer_left(int amount);					// Steer left motor.
 void steer_right(int amount);					// Steer right motor.
 void turn_to_destination(int direction);		// Turns Wall-E on grid to next intersection.
@@ -110,6 +109,7 @@ float calc_compensation(float x);				// Calculates compensation for motor correc
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
 int translate_y(int y);							// Translates coordinate system coordinates to nested vector coordinates.
 int scan_surroundings();						// Returns the information in the surrounding tiles.
+int scan_ultrasonic();							// Returns ultrasonic value.
 int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 int turn_head(int degree);						// Turns head to disered position.
 int no_object();								// Keeps on driving till there is no object.
@@ -119,8 +119,7 @@ bool intersection();							// Detects intersections.
 vector<int16_t> get_contrast();					// Returns the reflected black / white contrast.
 vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
 vector<int> get_new_coordinates(int direction, vector<int> current_position);	/// Gets new coordinates of Wall-E in grid.
-int16_t max_vector(vector<int16_t> const vec);	// Returns the highest integer value of a vector.
-int16_t min_vector(vector<int16_t> const vec);	// Returns the lowest integer value of a vector.
+int16_t val_vector(vector<int16_t> const vec, bool max_min)	// Returns the highest or lowest integer value of a vector.
 int16_t line_val();								// Returns the reflected black / white contrast.
 
 #endif //CLION_WALL_E_H
