@@ -19,31 +19,34 @@ void motor_power_limit(int power, int dps) {
 }
 
 int turn_head(int degree) {
-        BP.set_motor_dps(m_head, degree);
-        sleep(1);
-        BP.set_motor_dps(m_head, 0);
+	BP.set_motor_dps(m_head, degree);
+	sleep(1);
+	BP.set_motor_dps(m_head, 0);
 }
 
 void dodge(bool turn_drive, int degrees, int distance) {
-    // TODO: fix static motor calls and static values
-	// TODO: fix bool
-    //Makes Wall-E turn and drive straight
+	// TODO: fix static motor calls and static value
+	//Makes Wall-E turn and drive straight
     int power = 40;
 
     //turn
     if (!turn_drive) {
-		motor_power_limit(35, 1200)
+		motor_power_limit(35, 1200);
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
+		
+		usleep(degrees*40000);
 
+	usleep(-1*degrees*15000);    
+	    
 	//drive
     } else if (turn_drive) {
         if (distance < 0) {
             distance *= -1;
             power *= -1;
         }
-		motor_power(power)
+		motor_power(power);
         usleep(76927 * distance);
         stop_driving();
     }
