@@ -19,9 +19,9 @@ void motor_power_limit(int power, int dps) {
 }
 
 int turn_head(int degree) {
-	// Turns head to disered position.
-    // TODO: this doesn't work
-    BP.set_motor_position(m_head, degree);
+        BP.set_motor_dps(m_head, degree);
+        sleep(1);
+        BP.set_motor_dps(m_head, 0);
 }
 
 void dodge(bool turn_drive, int degrees, int distance) {
