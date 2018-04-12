@@ -4,7 +4,6 @@
 #include "lib/grid_func.cpp"
 #include "lib/pid_func.cpp"
 
-
 void stop() {
     /// Stops driving Wall-E and exit the threads.
     stop_driving();
@@ -43,13 +42,6 @@ void setup() {
     // TODO: calibrate head position
 }
 
-int bound(float value, int begin, int end) {
-    /// Cap value between begin and end range. Used to keep PID motor values in boundaries.
-    if (value < begin) return begin;
-    if (value > end) return end;
-    return int(value);
-}
-
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (!brain.exit) {
@@ -74,6 +66,7 @@ void drive() {
                 usleep(brain.pid_update_frequency_ms);
             }
             // Intersection has been found
+<<<<<<< HEAD
             dodge(1, 0, 10);                        // Continue driving for 10cm
             if (brain.found_eve) {
                 cout << "Found E.V.E." << endl;
@@ -86,11 +79,22 @@ void drive() {
                 brain.driving_direction = direction;
                 update_virtual_grid();
             }
+=======
+            cout << "Intersection found" << endl;
+            dodge(true, 0, 10);
+            int direction = scan_surroundings();    // Get desired direction
+            turn_to_destination(direction);         // Turn Wall-E to next intersection
+
+            // update GRID parameters
+            brain.driving_direction = direction;
+            update_virtual_grid();
+>>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
         }
     }
 }
 
 void set_drive_mode() {
+	/// Sets driving mode of Wall-E.
     string mode = "STOP";
     cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
     cin >> mode;

@@ -1,8 +1,7 @@
 #include "../Wall-E.h"
 
-
 void print_grid() {
-    /// Visualise the virtual grid
+    /// Visualise the virtual grid.
     cout << "Virtual GRID state: " << endl;
     cout << "[" << endl;
     for (unsigned int y = 0; y < brain.grid.size(); y++) {
@@ -15,6 +14,7 @@ void print_grid() {
     cout << "]";
 }
 
+<<<<<<< HEAD
 vector<int> translate_xy_to_vector(int x, int y) {
     /// Translates coordinate system coordinates to nested vector coordinates
     return {x, int(brain.grid.size()) - y - 1};
@@ -38,6 +38,20 @@ int scan_surroundings() {
     /// Returns the information in the surrounding tiles
     vector<direction> dir_codes = {{RIGHT, 0}, {UP,    0},  {LEFT,  0}, {DOWN,  0}};
     vector<vector<int>> c = {{1,  0}, {0,  1}, {-1, 0}, {0, -1}};
+=======
+int translate_y(int y) {
+    /// Translates coordinate system coordinates to nested vector coordinates.
+    return brain.grid.size() - y - 1;
+}
+
+int scan_surroundings() {
+    /// Returns the information in the surrounding tiles.
+    vector<direction> dir_codes = {{RIGHT, 0}, {UP, 0}, {LEFT, 0},{DOWN, 0}};
+    vector<vector<int>> c = {{0,  1},
+                             {0,  -1},
+                             {-1, 0},
+                             {-1, 0}};
+>>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
 
     // Assign values to directions
     for (unsigned int i = 0; i < dir_codes.size(); i++) {
@@ -62,17 +76,26 @@ int scan_surroundings() {
                 return dir_codes[i].dir;
             }
         }
+<<<<<<< HEAD
         if (dir_codes[i].code > tmp.code) {
             tmp = dir_codes[i];
+=======
+        if (tmp.code == 3) {
+            cout << "E.V.E. found!" << endl;
+            dodge(false, 180, 0);
+            brain.exit = true;
+>>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
         }
     }
     return tmp.dir;
 }
 
 void turn_to_destination(int direction) {
+	/// Turns Wall-E on grid to next intersection.
     // 0=no change, -1=left, 1=right >1 turn
     int turn = brain.driving_direction - direction;
     if (turn == -1 or turn == 3) {
+<<<<<<< HEAD
         stop_driving();
         dodge(0, -90, 0);
     } else if (turn == 1 or turn == -3) {
@@ -81,10 +104,18 @@ void turn_to_destination(int direction) {
     } else if (turn == 2 or turn == -2) {
         stop_driving();
         dodge(0, 180, 0);
+=======
+        dodge(false, 90, 0);
+    } else if (turn == 1 or turn == -3) {
+        dodge(false, -90, 0);
+    } else if (turn == 2 or turn == -2) {
+        dodge(false, 180, 0);
+>>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
     }
 }
 
 void set_grid_parameters() {
+	/// Sets parameters for grid.
     int x = 5, y = 5;
     cout << "Enter desired grid size as integers divided by a spece (x y): ";
     cin >> x >> y;
@@ -128,6 +159,7 @@ void update_virtual_grid() {
 }
 
 vector<int> get_new_coordinates(int direction, vector<int> current_position) {
+	/// Gets new coordinates of Wall-E in grid.
     if (direction == UP) return {current_position[0], current_position[1] + 1};
     if (direction == DOWN) return {current_position[0], current_position[1] - 1};
     if (direction == RIGHT) return {current_position[0] + 1, current_position[1]};
