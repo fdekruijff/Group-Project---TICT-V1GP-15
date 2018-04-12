@@ -27,7 +27,11 @@ int turn_head(int degree) {
 void dodge(int turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
 	// TODO: fix bool
+<<<<<<< HEAD
     ///Makes Wall-E turn and drive straight.
+=======
+    //Makes Wall-E turn and drive straight
+>>>>>>> e0ee5c7abf597534c2363f758b78ae5c8020ab1f
     int power = 40;
 
     //turn
@@ -59,6 +63,7 @@ void steer_right(int amount) {
     BP.set_motor_power(m_right, uint8_t(amount));
 }
 
+<<<<<<< HEAD
 void around_object() {
     thread findLine(find_line);
     /// Main function to drive around the obstacle. it calls all the functions in the right order.
@@ -85,3 +90,16 @@ void around_object() {
     }
     findLine.join();
 }
+=======
+int around_object() {
+    /// main function to drive around the obstacle. it calls all the functions in the right order
+    dodge(0, -90, 0);
+    turn_head(90);
+    dodge(1, 0, 20);
+    dodge(0, 180, 0);
+    no_object(1);
+    dodge(0,180, 0);
+    motor_power(20);
+    sleep(99999999);
+}
+>>>>>>> e0ee5c7abf597534c2363f758b78ae5c8020ab1f
