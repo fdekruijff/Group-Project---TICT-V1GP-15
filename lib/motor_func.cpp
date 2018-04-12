@@ -37,6 +37,8 @@ void dodge(bool turn_drive, int degrees, int distance) {
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
 
+	usleep(degrees*40000);    
+	    
 	//drive
     } else if (turn_drive) {
         if (distance < 0) {
