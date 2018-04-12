@@ -66,8 +66,7 @@ void drive() {
                 usleep(brain.pid_update_frequency_ms);
             }
             // Intersection has been found
-<<<<<<< HEAD
-            dodge(1, 0, 10);                        // Continue driving for 10cm
+            dodge(true, 0, 10);                        // Continue driving for 10cm
             if (brain.found_eve) {
                 cout << "Found E.V.E." << endl;
 //                dodge(0, 360, 0);
@@ -79,16 +78,6 @@ void drive() {
                 brain.driving_direction = direction;
                 update_virtual_grid();
             }
-=======
-            cout << "Intersection found" << endl;
-            dodge(true, 0, 10);
-            int direction = scan_surroundings();    // Get desired direction
-            turn_to_destination(direction);         // Turn Wall-E to next intersection
-
-            // update GRID parameters
-            brain.driving_direction = direction;
-            update_virtual_grid();
->>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
         }
     }
 }

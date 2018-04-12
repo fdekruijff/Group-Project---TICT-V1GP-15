@@ -90,48 +90,10 @@ wall_e_settings brain;
 
 void exit_signal_handler(int sig);              // Control-C handler that resets Brick Pi and exits application.
 void stop();                                    // Stops driving Wall-E and exit the threads.
-<<<<<<< HEAD
-void stop_driving();
-void setup();
-void motor_power(int power);
-void motor_power_limit(int power, int dps);
-void dodge(int turn_drive, int degrees, int distance);
-void scan_ultrasonic();
-void steer_left(int amount);
-void steer_right(int amount);
-void turn_to_destination(int direction);
-void update_virtual_grid();
-void drive();
-void find_line();
-void around_object();
-void object_in_the_way();
-void set_drive_mode();
-void set_grid_parameters();
-void measure_contrast();
-void calibrate();
-void print_grid();
-float calc_compensation(float x);
-float calculate_correction();
-int scan_surroundings();
-int bound(float value, int begin, int end);
-int turn_head(int degree);
-int no_object();
-int get_desired_direction();
-bool is_black();
-bool color_is_black();
-bool intersection();
-vector<int16_t> get_contrast();
-vector<int> motor_correction();
-vector<int> translate_xy_to_vector(int x, int y);
-vector<int> get_new_coordinates(int direction, vector<int> current_position);
-int16_t max_vector(vector<int16_t> const vec);
-int16_t min_vector(vector<int16_t> const vec);
-int16_t line_val();
-=======
 void stop_driving();							// Stops driving Wall-E.
 void setup();									// Brick PI and exit handler are initialised here.
 void motor_power(int power);					// Set motor power to specific power level simultaneously.
-void motor_power_limit(int power);				// Set motor power to specific power limit simultaneously.
+void motor_power_limit(int power, int dps);  	// Set motor power to specific power limit simultaneously.
 void dodge(bool turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
 void steer_left(int amount);					// Steer left motor.
 void steer_right(int amount);					// Steer right motor.
@@ -148,7 +110,7 @@ void calibrate();								// Function reads sensor values while driving over the 
 void print_grid();								// Visualise the virtual grid
 float calc_compensation(float x);				// Calculates compensation for motor correction.
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
-int translate_y(int y);							// Translates coordinate system coordinates to nested vector coordinates.
+vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
 int scan_surroundings();						// Returns the information in the surrounding tiles.
 int scan_ultrasonic();							// Returns ultrasonic value.
 int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
@@ -159,9 +121,9 @@ bool color_is_black();							// Is color sensor value in the black domain?
 bool intersection();							// Detects intersections.
 vector<int16_t> get_contrast();					// Returns the reflected black / white contrast.
 vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
-vector<int> get_new_coordinates(int direction, vector<int> current_position);	/// Gets new coordinates of Wall-E in grid.
-int16_t val_vector(vector<int16_t> const vec, bool max_min)	// Returns the highest or lowest integer value of a vector.
+vector<int> get_new_coordinates(int direction, vector<int> current_position);   // Gets new coordinates of Wall-E in grid.
+int16_t max_vector(vector<int16_t> vec);        // Returns the highest integer value of a vector.
+int16_t min_vector(vector<int16_t> vec);        // Returns the lowest integer value of a vector.
 int16_t line_val();								// Returns the reflected black / white contrast.
->>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
 
 #endif //CLION_WALL_E_H
