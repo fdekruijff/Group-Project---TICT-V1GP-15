@@ -25,14 +25,13 @@ int turn_head(int degree) {
 
 void dodge(int turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
+	// TODO: fix bool
     //Makes Wall-E turn and drive straight
     int power = 40;
-    degrees /= 5.625; //360 conversion to 64
 
     //turn
     if (turn_drive == 0) {
-        BP.set_motor_limits(m_left, 35, 1200);
-        BP.set_motor_limits(m_right, 35, 1200);
+		motor_power_limit(35, 1200)
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
@@ -43,8 +42,7 @@ void dodge(int turn_drive, int degrees, int distance) {
             distance *= -1;
             power *= -1;
         }
-        BP.set_motor_power(m_left, int8_t(power));
-        BP.set_motor_power(m_right, int8_t(power));
+		motor_power(power)
         usleep(76927 * distance);
         stop_driving();
     }
