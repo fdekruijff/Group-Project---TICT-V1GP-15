@@ -53,7 +53,7 @@ const int DOWN = 4;
 thread scan_distance;
 thread stop_object;
 thread init_drive;
-thread findLine;
+thread move_around;
 
 struct direction {
     int dir;
@@ -70,14 +70,16 @@ struct wall_e_settings {
     float i_gain = 0.01;                        // Domain: unknown
     float d_gain = 2.8;                         // Domain: unknown
     float p_gain = 0.225;                       // Domain: [0.275, 0.325]
-    float compensation_multiplier = 950.0;      // Domain: [750, 1200]
-    int motor_power = 40;                       // Domain: [10, 80]
-    int pid_update_frequency_ms = 13500;        // Domain: [10000, 175000]
+    float compensation_multiplier = 1000.0;      // Domain: [750, 1200]
+    int motor_power = 50;                       // Domain: [10, 80]
+    int pid_update_frequency_ms = 13750;        // Domain: [10000, 175000]
     int driving_direction = RIGHT;              // Driving direction on GRID as seen from below the coordinate system
     int limited_distance = 10;                  // Sensor distance to stop PID
     bool exit = false;                          // Exit boolean to stop Wall-E
+    bool found_eve = false;
     string driving_mode = STOP;                 // Default driving mode
-    vector<int> current_coordinates = {1, 1};   // Current position of Wall-E on the GRID.
+    vector<int> current_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
+    vector<int> destination_coordinates = {0, 0};   // Current position of Wall-E on the GRID.
     vector<int> last_coordinates = {0, 0};      // Previous position of Wall-E on the GRID.
     vector<vector<int>> grid;                   // -1 = out of bounds 0 = obstruction, 1 = explored, 2 = unexplored, 3 = destination, 4 = Wall-E
 };
@@ -85,12 +87,13 @@ struct wall_e_settings {
 ///  Declare the brain!
 wall_e_settings brain;
 
+
 void exit_signal_handler(int sig);              // Control-C handler that resets Brick Pi and exits application.
 void stop();                                    // Stops driving Wall-E and exit the threads.
 void stop_driving();							// Stops driving Wall-E.
 void setup();									// Brick PI and exit handler are initialised here.
 void motor_power(int power);					// Set motor power to specific power level simultaneously.
-void motor_power_limit(int power);				// Set motor power to specific power limit simultaneously.
+void motor_power_limit(int power, int dps);  	// Set motor power to specific power limit simultaneously.
 void dodge(bool turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
 void steer_left(int amount);					// Steer left motor.
 void steer_right(int amount);					// Steer right motor.
@@ -107,7 +110,7 @@ void calibrate();								// Function reads sensor values while driving over the 
 void print_grid();								// Visualise the virtual grid
 float calc_compensation(float x);				// Calculates compensation for motor correction.
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
-int translate_y(int y);							// Translates coordinate system coordinates to nested vector coordinates.
+vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
 int scan_surroundings();						// Returns the information in the surrounding tiles.
 int scan_ultrasonic();							// Returns ultrasonic value.
 int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
@@ -118,8 +121,9 @@ bool color_is_black();							// Is color sensor value in the black domain?
 bool intersection();							// Detects intersections.
 vector<int16_t> get_contrast();					// Returns the reflected black / white contrast.
 vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
-vector<int> get_new_coordinates(int direction, vector<int> current_position);	/// Gets new coordinates of Wall-E in grid.
-int16_t val_vector(vector<int16_t> const vec, bool max_min)	// Returns the highest or lowest integer value of a vector.
+vector<int> get_new_coordinates(int direction, vector<int> current_position);   // Gets new coordinates of Wall-E in grid.
+int16_t max_vector(vector<int16_t> vec);        // Returns the highest integer value of a vector.
+int16_t min_vector(vector<int16_t> vec);        // Returns the lowest integer value of a vector.
 int16_t line_val();								// Returns the reflected black / white contrast.
 
 #endif //CLION_WALL_E_H
