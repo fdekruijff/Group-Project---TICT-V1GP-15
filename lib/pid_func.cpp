@@ -1,13 +1,16 @@
 #include "../Wall-E.h"
 
 void find_line() {
+    sleep(5);
     brain.driving_mode = FREE;
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
     }
     stop_driving();
     cout << "Wall-E found the line again!, starting PID controller." << endl;
+    if (x.joinable()) x.join();
     dodge(0, -90, 0);
+    turn_head(-90);
     brain.driving_mode = LINE;
 }
 
