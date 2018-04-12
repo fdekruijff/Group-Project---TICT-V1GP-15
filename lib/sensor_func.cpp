@@ -138,10 +138,11 @@ void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
     while (!brain.exit) {
-        if (sonic_struct.cm < brain.limited_distance) {
+        if (sonic_struct.cm < limited_distance) {
             brain.driving_mode = STOP;
-            brain.driving_mode = OBJECT;
-            around_object();
+            thread x (around_object);
+            find_line();
+            if (x.joinable()) x.join();
         }
     }
 }
