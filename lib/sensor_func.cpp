@@ -90,6 +90,7 @@ bool color_is_black() {
 }
 
 bool intersection() {
+	/// Detects intersections.
     return is_black() && color_is_black();
 }
 
@@ -100,7 +101,7 @@ int16_t line_val() {
 }
 
 int no_object() {
-    ///keeps on driving till there is no object.
+    /// Keeps on driving till there is no object.
     // TODO: make sure the boolean logic works here
     bool to_object = false;
     bool object = false;
@@ -137,7 +138,7 @@ void scan_ultrasonic() {
 void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
-    while (!brain.exit) {
+    while (!brain.exit and brain.driving_mode == LINE) {
         if (sonic_struct.cm < brain.limited_distance) {
             brain.driving_mode = STOP;
             brain.driving_mode = OBJECT;

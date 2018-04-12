@@ -1,6 +1,7 @@
 #include "../Wall-E.h"
 
 void find_line() {
+	/// Finds line when driving straight.
     brain.driving_mode = FREE;
     while (brain.driving_mode == FREE && !is_black()) {
         usleep(500000);
@@ -11,7 +12,15 @@ void find_line() {
     brain.driving_mode = LINE;
 }
 
+int bound(float value, int begin, int end) {
+    /// Cap value between begin and end range. Used to keep PID motor values in boundaries.
+    if (value < begin) return begin;
+    if (value > end) return end;
+    return int(value);
+}
+
 float calc_compensation(float x) {
+	/// Calculates compensation for motor correction. 
     return float((1.0 / brain.compensation_multiplier) * (x * x));
 }
 
@@ -34,7 +43,7 @@ float calculate_correction() {
 }
 
 vector<int> motor_correction() {
-    /// Returns PID calculated motor correction for left and right motor
+    /// Returns PID calculated motor correction for left and right motor.
     float output = calculate_correction();
     float comp = calc_compensation(brain.last_error);
     return {bound(brain.motor_power - comp - output, -100, 100), bound(brain.motor_power - comp + output, -100, 100)};

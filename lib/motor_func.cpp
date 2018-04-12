@@ -1,7 +1,7 @@
 #include "../Wall-E.h"
 
 void stop_driving() {
-    /// Stops driving Wall-E and exit the threads.
+    /// Stops driving Wall-E.
     BP.set_motor_power(m_right, 0);
     BP.set_motor_power(m_left, 0);
 }
@@ -12,39 +12,38 @@ void motor_power(int power) {
     BP.set_motor_power(m_right, uint8_t(power));
 }
 
-void motor_power_limit(int power) {
+void motor_power_limit(int power, int dps) {
     /// Set motor power to specific power limit simultaneously.
-    BP.set_motor_limits(m_left, uint8_t(power), 0);
-    BP.set_motor_limits(m_right, uint8_t(power), 0);
+    BP.set_motor_limits(m_left, uint8_t(power), uint8_t(dps));
+    BP.set_motor_limits(m_right, uint8_t(power), uint8_t(dps));
 }
 
 int turn_head(int degree) {
+	// Turns head to disered position.
     // TODO: this doesn't work
     BP.set_motor_position(m_head, degree);
 }
 
 void dodge(int turn_drive, int degrees, int distance) {
     // TODO: fix static motor calls and static values
-    //Makes Wall-E turn and drive straight
+	// TODO: fix bool
+    ///Makes Wall-E turn and drive straight.
     int power = 40;
-    degrees /= 5.625; //360 conversion to 64
 
     //turn
     if (turn_drive == 0) {
-        BP.set_motor_limits(m_left, 35, 1200);
-        BP.set_motor_limits(m_right, 35, 1200);
+		motor_power_limit(35, 1200)
 
         BP.set_motor_position_relative(m_left, int32_t(degrees * 5.95));
         BP.set_motor_position_relative(m_right, int32_t(degrees * 5.85 * -1));
 
-        //drive
+	//drive
     } else if (turn_drive == 1) {
         if (distance < 0) {
             distance *= -1;
             power *= -1;
         }
-        BP.set_motor_power(m_left, int8_t(power));
-        BP.set_motor_power(m_right, int8_t(power));
+		motor_power(power)
         usleep(76927 * distance);
         stop_driving();
     }
@@ -62,7 +61,7 @@ void steer_right(int amount) {
 
 void around_object() {
     thread findLine(find_line);
-    /// main function to drive around the obstacle. it calls all the functions in the right order
+    /// Main function to drive around the obstacle. it calls all the functions in the right order.
     vector<vector<int>> v_around_object = {{-90, 90, 1},
                                            {90,  1},
                                            {90,  0,  20}};

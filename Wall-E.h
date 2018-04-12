@@ -87,40 +87,40 @@ wall_e_settings brain;
 
 void exit_signal_handler(int sig);              // Control-C handler that resets Brick Pi and exits application.
 void stop();                                    // Stops driving Wall-E and exit the threads.
-void stop_driving();
-void setup();
-void motor_power(int power);
-void motor_power_limit(int power);
-void dodge(int turn_drive, int degrees, int distance);
-void scan_ultrasonic();
-void steer_left(int amount);
-void steer_right(int amount);
-void turn_to_destination(int direction);
-void update_virtual_grid();
-void drive();
-void find_line();
-void around_object();
-void object_in_the_way();
-void set_drive_mode();
-void set_grid_parameters();
-void measure_contrast();
-void calibrate();
-void print_grid();
-float calc_compensation(float x);
-float calculate_correction();
-int translate_y(int y);
-int scan_surroundings();
-int bound(float value, int begin, int end);
-int turn_head(int degree);
-int no_object();
-bool is_black();
-bool color_is_black();
-bool intersection();
-vector<int16_t> get_contrast();
-vector<int> motor_correction();
-vector<int> get_new_coordinates(int direction, vector<int> current_position);
-int16_t max_vector(vector<int16_t> const vec);
-int16_t min_vector(vector<int16_t> const vec);
-int16_t line_val();
+void stop_driving();							// Stops driving Wall-E.
+void setup();									// Brick PI and exit handler are initialised here.
+void motor_power(int power);					// Set motor power to specific power level simultaneously.
+void motor_power_limit(int power);				// Set motor power to specific power limit simultaneously.
+void dodge(int turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
+void scan_ultrasonic();							// Returns ultrasonic value
+void steer_left(int amount);					// Steer left motor.
+void steer_right(int amount);					// Steer right motor.
+void turn_to_destination(int direction);		// Turns Wall-E on grid to next intersection.
+void update_virtual_grid();						// Update virtual grid based on position and driving direction
+void drive();									// Threaded function that applies certain drive mode.
+void find_line();								// Finds line when driving straight.
+void around_object();							// Main function to drive around the obstacle. it calls all the functions in the right order.
+void object_in_the_way();						// If a object is in the way of the PID it stops the PID.
+void set_drive_mode();							// Sets driving mode of Wall-E
+void set_grid_parameters();						// Sets parameters for grid.
+void measure_contrast();						// Thread function that reads sensor values and calculates maximum and minimum from local vector.
+void calibrate();								// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
+void print_grid();								// Visualise the virtual grid
+float calc_compensation(float x);				// Calculates compensation for motor correction.
+float calculate_correction();					// PID calculations are performed here. Magic for the most part.
+int translate_y(int y);							// Translates coordinate system coordinates to nested vector coordinates.
+int scan_surroundings();						// Returns the information in the surrounding tiles.
+int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
+int turn_head(int degree);						// Turns head to disered position.
+int no_object();								// Keeps on driving till there is no object.
+bool is_black();								// Is sensor value in the black domain?
+bool color_is_black();							// Is color sensor value in the black domain?
+bool intersection();							// Detects intersections.
+vector<int16_t> get_contrast();					// Returns the reflected black / white contrast.
+vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
+vector<int> get_new_coordinates(int direction, vector<int> current_position);	/// Gets new coordinates of Wall-E in grid.
+int16_t max_vector(vector<int16_t> const vec);	// Returns the highest integer value of a vector.
+int16_t min_vector(vector<int16_t> const vec);	// Returns the lowest integer value of a vector.
+int16_t line_val();								// Returns the reflected black / white contrast.
 
 #endif //CLION_WALL_E_H

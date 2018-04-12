@@ -40,13 +40,6 @@ void setup() {
     // TODO: calibrate head position
 }
 
-int bound(float value, int begin, int end) {
-    /// Cap value between begin and end range. Used to keep PID motor values in boundaries.
-    if (value < begin) return begin;
-    if (value > end) return end;
-    return int(value);
-}
-
 void drive() {
     /// Threaded function that applies certain drive mode.
     while (!brain.exit) {
@@ -84,6 +77,7 @@ void drive() {
 }
 
 void set_drive_mode() {
+	/// Sets driving mode of Wall-E.
     string mode = "STOP";
     cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
     cin >> mode;
