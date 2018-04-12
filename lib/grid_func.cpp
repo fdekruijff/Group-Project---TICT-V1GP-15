@@ -115,7 +115,7 @@ void set_grid_parameters() {
 }
 
 void update_virtual_grid() {
-    /// Update virtual grid based on position and driving direction
+    /// Update virtual grid based on position and driving direction.
     vector<int> new_coordinates = get_new_coordinates(brain.driving_direction, brain.current_coordinates);
     cout << "new coordinates: (" << new_coordinates[0] << ", " << new_coordinates[1] << ")" << endl;
     brain.grid[translate_xy_to_vector(brain.last_coordinates[0], 0)[0]][translate_xy_to_vector(0, brain.last_coordinates[1])[1]] = 1;
