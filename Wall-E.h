@@ -108,12 +108,11 @@ void set_grid_parameters();						// Sets parameters for grid.
 void measure_contrast();						// Thread function that reads sensor values and calculates maximum and minimum from local vector.
 void calibrate();								// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
 void print_grid();								// Visualise the virtual grid
+void scan_ultrasonic();							// Returns ultrasonic value.
 float calc_compensation(float x);				// Calculates compensation for motor correction.
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
 vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
 int scan_surroundings();						// Returns the information in the surrounding tiles.
-void scan_ultrasonic();							// Returns ultrasonic value.
-int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 int turn_head(int degree);						// Turns head to disered position.
 
 ///sensor_func
@@ -135,6 +134,7 @@ int16_t line_val();								// Returns the reflected black / white contrast.
 void find_line();								// Finds line when driving straight.
 float calc_compensation(float x);				// Calculates compensation for motor correction.
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
+int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
 
 ///grid_func
@@ -144,18 +144,6 @@ void set_grid_parameters();						// Sets parameters for grid.
 void print_grid();								// Visualise the virtual grid.
 vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
 vector<int> get_new_coordinates(int direction, vector<int> current_position);   // Gets new coordinates of Wall-E in grid.
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 #endif //CLION_WALL_E_H
