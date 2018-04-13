@@ -107,13 +107,13 @@ int no_object() {
     while (!to_object) {
         if (!object and !end_of_object) {
             dodge(true, 0, 1);
-            if (scan_ultrasonic() < 20) {
+            if (sonic_struct.cm < 20) {
                 object = true;
             }
         }
         if (object and !end_of_object) {
             dodge(true, 0, 1);
-            if (scan_ultrasonic() > 30) {
+            if (sonic_struct.cm > 30) {
                 end_of_object = true;
             }
         }
@@ -124,26 +124,25 @@ int no_object() {
     }
 }
 
-int scan_ultrasonic() {
-    /// Returns ultrasonic value.
-    BP.get_sensor(s_ultrasonic, sonic_struct);
-    return sonic_struct.cm;
+void scan_ultrasonic() {
+    /// Returns ultrasonic value
+    // TODO: maybe refactor this code.
+    while (!brain.exit) {
+        BP.get_sensor(s_ultrasonic, sonic_struct);
+        usleep(200000);
+    }
 }
 
 void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
-    <<<<<<< HEAD
     while (!brain.exit) {
+        cout << sonic_struct.cm << endl;
         if (sonic_struct.cm < brain.limited_distance) {
-            =======
-            while (!brain.exit and brain.driving_mode == LINE) {
-                if (scan_ultrasonic() < brain.limited_distance) {
-                    >>>>>>> eb65f3eabb399ac261ccae525f60a059cd762b65
-                    brain.driving_mode = STOP;
-                    thread move_around(around_object);
-                    find_line();
-                    if (move_around.joinable()) move_around.join();
-                }
-            }
+            brain.driving_mode = STOP;
+            thread x (around_object);
+            find_line();
+            if (x.joinable()) x.join();
         }
+    }
+}

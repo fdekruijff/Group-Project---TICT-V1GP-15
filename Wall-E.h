@@ -53,7 +53,7 @@ const int DOWN = 4;
 thread scan_distance;
 thread stop_object;
 thread init_drive;
-thread move_around;
+thread x;
 
 struct direction {
     int dir;
@@ -74,7 +74,7 @@ struct wall_e_settings {
     int motor_power = 50;                       // Domain: [10, 80]
     int pid_update_frequency_ms = 13750;        // Domain: [10000, 175000]
     int driving_direction = RIGHT;              // Driving direction on GRID as seen from below the coordinate system
-    int limited_distance = 10;                  // Sensor distance to stop PID
+    int limited_distance = 2;                  // Sensor distance to stop PID
     bool exit = false;                          // Exit boolean to stop Wall-E
     bool found_eve = false;
     string driving_mode = STOP;                 // Default driving mode
@@ -112,7 +112,7 @@ float calc_compensation(float x);				// Calculates compensation for motor correc
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
 vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
 int scan_surroundings();						// Returns the information in the surrounding tiles.
-int scan_ultrasonic();							// Returns ultrasonic value.
+void scan_ultrasonic();							// Returns ultrasonic value.
 int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 int turn_head(int degree);						// Turns head to disered position.
 int no_object();								// Keeps on driving till there is no object.
