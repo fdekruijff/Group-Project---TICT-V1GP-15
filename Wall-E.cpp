@@ -83,7 +83,7 @@ void drive() {
 }
 
 void set_drive_mode() {
-	/// Sets driving mode of Wall-E.
+    /// Sets driving mode of Wall-E.
     string mode = "STOP";
     cout << "Enter drive mode (STOP, LINE, GRID, FREE): ";
     cin >> mode;
@@ -104,8 +104,8 @@ int main() {
     }
 
     // Start sensor threads
-//    thread scan_distance(scan_ultrasonic);
-//    thread stop_object(object_in_the_way);
+    thread scan_distance(scan_ultrasonic);
+    thread stop_object(object_in_the_way);
 
     // Start driving thread
     thread init_drive(drive);

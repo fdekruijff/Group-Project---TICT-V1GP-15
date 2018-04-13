@@ -87,20 +87,20 @@ struct wall_e_settings {
 ///  Declare the brain!
 wall_e_settings brain;
 
-
+///Wall-E
 void exit_signal_handler(int sig);              // Control-C handler that resets Brick Pi and exits application.
 void stop();                                    // Stops driving Wall-E and exit the threads.
-void stop_driving();							// Stops driving Wall-E.
 void setup();									// Brick PI and exit handler are initialised here.
+void drive();									// Threaded function that applies certain drive mode.
+void set_drive_mode();							// Sets driving mode of Wall-E
+
+///motor_func
+void stop_driving();							// Stops driving Wall-E.
 void motor_power(int power);					// Set motor power to specific power level simultaneously.
 void motor_power_limit(int power, int dps);  	// Set motor power to specific power limit simultaneously.
 void dodge(bool turn_drive, int degrees, int distance);	//Makes Wall-E turn and drive straight.
 void steer_left(int amount);					// Steer left motor.
 void steer_right(int amount);					// Steer right motor.
-void turn_to_destination(int direction);		// Turns Wall-E on grid to next intersection.
-void update_virtual_grid();						// Update virtual grid based on position and driving direction
-void drive();									// Threaded function that applies certain drive mode.
-void find_line();								// Finds line when driving straight.
 void around_object();							// Main function to drive around the obstacle. it calls all the functions in the right order.
 void object_in_the_way();						// If a object is in the way of the PID it stops the PID.
 void set_drive_mode();							// Sets driving mode of Wall-E
@@ -115,15 +115,47 @@ int scan_surroundings();						// Returns the information in the surrounding tile
 void scan_ultrasonic();							// Returns ultrasonic value.
 int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 int turn_head(int degree);						// Turns head to disered position.
+
+///sensor_func
 int no_object();								// Keeps on driving till there is no object.
 bool is_black();								// Is sensor value in the black domain?
 bool color_is_black();							// Is color sensor value in the black domain?
 bool intersection();							// Detects intersections.
+void object_in_the_way();						// If a object is in the way of the PID it stops the PID.
+void measure_contrast();						// Thread function that reads sensor values and calculates maximum and minimum from local vector.
+void calibrate();								// Function reads sensor values while driving over the tape. Sets maximum, minimum and set point for PID.
+int scan_surroundings();						// Returns the information in the surrounding tiles.
+void scan_ultrasonic();							// Returns ultrasonic value.
 vector<int16_t> get_contrast();					// Returns the reflected black / white contrast.
-vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
-vector<int> get_new_coordinates(int direction, vector<int> current_position);   // Gets new coordinates of Wall-E in grid.
 int16_t max_vector(vector<int16_t> vec);        // Returns the highest integer value of a vector.
 int16_t min_vector(vector<int16_t> vec);        // Returns the lowest integer value of a vector.
 int16_t line_val();								// Returns the reflected black / white contrast.
+
+///pid_func
+void find_line();								// Finds line when driving straight.
+float calc_compensation(float x);				// Calculates compensation for motor correction.
+float calculate_correction();					// PID calculations are performed here. Magic for the most part.
+vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
+
+///grid_func
+void turn_to_destination(int direction);		// Turns Wall-E on grid to next intersection.
+void update_virtual_grid();						// Update virtual grid based on position and driving direction.
+void set_grid_parameters();						// Sets parameters for grid.
+void print_grid();								// Visualise the virtual grid.
+vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
+vector<int> get_new_coordinates(int direction, vector<int> current_position);   // Gets new coordinates of Wall-E in grid.
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 #endif //CLION_WALL_E_H

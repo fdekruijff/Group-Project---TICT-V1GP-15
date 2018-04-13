@@ -136,6 +136,7 @@ void scan_ultrasonic() {
 void object_in_the_way() {
     /// If a object is in the way of the PID it stops the PID.
     sleep(1); //TODO: this is bad practice
+<<<<<<< HEAD
     while (!brain.exit) {
         cout << sonic_struct.cm << endl;
         if (sonic_struct.cm < brain.limited_distance) {
@@ -145,4 +146,14 @@ void object_in_the_way() {
             if (x.joinable()) x.join();
         }
     }
+=======
+    while (!brain.exit and brain.driving_mode == LINE) {
+		if (scan_ultrasonic() < brain.limited_distance) {
+			brain.driving_mode = STOP;
+			thread move_around(around_object);
+			find_line();
+			if (move_around.joinable()) move_around.join();
+		}
+	}
+>>>>>>> 8146d1bdf33f0fa79f16fbd36821f191fa831718
 }
