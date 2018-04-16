@@ -100,8 +100,6 @@ void dodge(bool turn_drive, int degrees, int distance);	//Makes Wall-E turn and 
 void steer_left(int amount);					// Steer left motor.
 void steer_right(int amount);					// Steer right motor.
 void around_object();							// Main function to drive around the obstacle. it calls all the functions in the right order.
-vector<int> translate_xy_to_vector(int x,int y);// Translates coordinate system coordinates to nested vector coordinates.
-int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 int turn_head(int degree);						// Turns head to disered position.
 
 ///sensor_func
@@ -123,6 +121,7 @@ int16_t line_val();								// Returns the reflected black / white contrast.
 void find_line();								// Finds line when driving straight.
 float calc_compensation(float x);				// Calculates compensation for motor correction.
 float calculate_correction();					// PID calculations are performed here. Magic for the most part.
+int bound(float value, int begin, int end);		// Cap value between begin and end range. Used to keep PID motor values in boundaries.
 vector<int> motor_correction();					// Returns PID calculated motor correction for left and right motor.
 
 ///grid_func
