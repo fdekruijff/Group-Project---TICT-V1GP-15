@@ -108,7 +108,7 @@ int main() {
     thread stop_object(object_in_the_way);
 
     // Start driving thread
-    thread init_drive(drive);
+//    thread init_drive(drive);
 
     while (!brain.exit) {
         // Just a infinite loop to keep the threads running
